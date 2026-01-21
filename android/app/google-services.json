@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "700059930357",
+    "firebase_url": "https://helapfe-default-rtdb.firebaseio.com",
+    "project_id": "helapfe",
+    "storage_bucket": "helapfe.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:700059930357:android:3478cb3638e05bf26cffbc",
+        "android_client_info": {
+          "package_name": "com.example.pfe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBa0qgWC6saA3UME1alcrlTulgKXEVHwhg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
