@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/yassine/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/yassine/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/yassine/Desktop/MyPFE/build/.cxx/debug/5xt6d2j5/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/yassine/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/yassine/Desktop/MyPFE/build/.cxx/debug/5xt6d2j5/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}
