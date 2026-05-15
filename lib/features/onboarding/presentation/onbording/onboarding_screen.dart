@@ -4,8 +4,8 @@ import 'package:pfe/core/localization/app_strings.dart';
 import 'package:pfe/core/widgets/blue_button/blue_button.dart';
 import 'package:pfe/core/widgets/skip/skip.dart';
 import 'package:pfe/core/widgets/text/text.dart';
-import 'package:pfe/features/onboarding/presentation/role_select/role_select.dart';
 import 'package:pfe/features/auth/presentation/login/login.dart';
+import 'package:pfe/features/onboarding/presentation/select_language/select_language.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -48,7 +48,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const RoleSelect()),
+        MaterialPageRoute(builder: (context) => const LanguageSelectionScreen()),
       );
     }
   }
@@ -79,7 +79,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header/Skip button
-                Skip(),
+                Skip(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LanguageSelectionScreen(),
+                      ),
+                    );
+                  },
+                ),
 
                 // PageView
                 Expanded(

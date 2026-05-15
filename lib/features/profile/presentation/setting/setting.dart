@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/features/profile/presentation/profile/profile.dart';
+import 'package:pfe/features/auth/data/services/auth_service.dart';
+import 'package:pfe/features/auth/presentation/login/login.dart';
 
 class Setting extends StatefulWidget {
   const Setting({super.key});
@@ -530,8 +532,14 @@ class _SettingsPageState extends State<Setting> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              onPressed: () {
-                // Handle logout
+              onPressed: () async {
+                await AuthService().signOut();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    (route) => false,
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.red.withValues(alpha: 0.1),

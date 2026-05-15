@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pfe/features/onboarding/presentation/onbording/onboarding_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:pfe/core/widgets/google_nav_bar/navbar.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -57,10 +60,25 @@ class _SplashScreenState extends State<SplashScreen>
     Future.delayed(const Duration(seconds: 3), () {
       _dotTimer?.cancel();
       if (mounted) {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          final box = Hive.box('settings');
+          final isRenter = box.get('isRenter');
+          if (isRenter != null) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => GoogleNavBar(renter: isRenter),
+              ),
+            );
+            return;
+          }
+        }
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => const OnboardingScreen(), // 🔁 Change this
+            builder: (_) => const OnboardingScreen(),
           ),
         );
       }

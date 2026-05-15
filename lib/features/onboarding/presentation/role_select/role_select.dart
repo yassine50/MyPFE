@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pfe/core/localization/app_strings.dart';
 import 'package:pfe/core/theme/app_colors.dart';
 import 'package:pfe/core/widgets/google_nav_bar/navbar.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class RoleSelect extends StatelessWidget {
   const RoleSelect({super.key});
@@ -51,6 +52,18 @@ class RoleSelect extends StatelessWidget {
                   description: AppStrings.roleRenterDesc,
                   buttonText: AppStrings.roleRenterButton,
                   filled: true,
+                  onPressed: () async {
+                    final box = Hive.box('settings');
+                    await box.put('isRenter', true);
+                    if (context.mounted) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (context) => const GoogleNavBar(renter: true),
+                        ),
+                      );
+                    }
+                  },
                 ),
 
                 const SizedBox(height: 20),
@@ -62,6 +75,18 @@ class RoleSelect extends StatelessWidget {
                   description: AppStrings.roleHostDesc,
                   buttonText: AppStrings.roleHostButton,
                   filled: false,
+                  onPressed: () async {
+                    final box = Hive.box('settings');
+                    await box.put('isRenter', false);
+                    if (context.mounted) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (context) => const GoogleNavBar(renter: false),
+                        ),
+                      );
+                    }
+                  },
                 ),
 
                 const SizedBox(height: 30),
@@ -90,6 +115,7 @@ class _RoleCard extends StatelessWidget {
   final String description;
   final String buttonText;
   final bool filled;
+  final VoidCallback onPressed;
 
   const _RoleCard({
     required this.image,
@@ -98,6 +124,7 @@ class _RoleCard extends StatelessWidget {
     required this.description,
     required this.buttonText,
     required this.filled,
+    required this.onPressed,
   });
 
   @override
@@ -174,15 +201,7 @@ class _RoleCard extends StatelessWidget {
                           : const BorderSide(color: AppColors.primaryBlue),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (context) =>
-                              const GoogleNavBar(renter: true),
-                        ),
-                      );
-                    },
+                    onPressed: onPressed,
                     child: Text(buttonText),
                   ),
                 ),

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 class Skip extends StatelessWidget {
-  const Skip({super.key});
+  final VoidCallback? onPressed;
+
+  const Skip({super.key, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton(
-        onPressed: () {
-          // Skip onboarding
-        },
+        onPressed: onPressed ?? () {},
         child: const Text(
           'Skip',
           style: TextStyle(
@@ -23,3 +23,4 @@ class Skip extends StatelessWidget {
     );
   }
 }
+

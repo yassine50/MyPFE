@@ -4,6 +4,7 @@ import 'package:pfe/core/theme/app_colors.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/core/widgets/blue_button/blue_button.dart';
 import 'package:pfe/features/onboarding/presentation/role_select/role_select.dart';
+import 'package:pfe/features/auth/data/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +16,22 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool isLogin = true;
   bool obscurePassword = true;
+  bool isLoading = false;
+
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _fullNameController = TextEditingController();
+  final _authService = AuthService();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _fullNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,12 +129,13 @@ class _LoginScreenState extends State<LoginScreen> {
           context: context,
           hint: 'name@example.com',
           icon: Icons.email_outlined,
+          controller: _emailController,
         ),
 
         const SizedBox(height: 16),
 
         _label(AppStrings.password, c),
-        _passwordField(context),
+        _passwordField(context, _passwordController),
 
         const SizedBox(height: 12),
 
@@ -134,17 +152,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
         const SizedBox(height: 8),
 
-        Bluebutton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (context) => const RoleSelect(),
+        isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Bluebutton(
+                onPressed: _handleLogin,
+                textButton: AppStrings.logIn,
               ),
-            );
-          },
-          textButton: AppStrings.logIn,
-        ),
 
         _divider(c),
         _socialAuth(context),
@@ -160,32 +173,136 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _label('Full Name', c),
+        _inputField(
+          context: context,
+          hint: 'John Doe',
+          icon: Icons.person_outline,
+          controller: _fullNameController,
+        ),
+
+        const SizedBox(height: 16),
+
         _label(AppStrings.emailAddress, c),
         _inputField(
           context: context,
           hint: 'name@example.com',
           icon: Icons.email_outlined,
+          controller: _emailController,
         ),
 
         const SizedBox(height: 16),
 
         _label(AppStrings.password, c),
-        _passwordField(context),
+        _passwordField(context, _passwordController),
 
         const SizedBox(height: 16),
 
         _label('Confirm Password', c),
-        _passwordField(context),
+        _passwordField(context, _confirmPasswordController),
 
         const SizedBox(height: 24),
 
-        Bluebutton(onPressed: () {}, textButton: AppStrings.signUp),
+        isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Bluebutton(
+                onPressed: _handleSignUp,
+                textButton: AppStrings.signUp,
+              ),
 
         _divider(c),
         _socialAuth(context),
         _terms(c),
       ],
     );
+  }
+
+  // ===================== AUTH LOGIC =====================
+
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      final user = await _authService.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (user != null && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute<void>(builder: (context) => const RoleSelect()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleSignUp() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirm = _confirmPasswordController.text.trim();
+    final name = _fullNameController.text.trim();
+
+    if (email.isEmpty || password.isEmpty || name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    if (password != confirm) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      final user = await _authService.signUpWithEmailAndPassword(
+        email: email,
+        password: password,
+        fullName: name,
+      );
+
+      if (user != null && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute<void>(builder: (context) => const RoleSelect()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
   }
 
   // ===================== REUSABLE =====================
@@ -237,12 +354,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _passwordField(BuildContext context) {
+  Widget _passwordField(BuildContext context, [TextEditingController? controller]) {
     return _inputField(
       context: context,
       hint: '••••••••',
       icon: Icons.lock_outline,
       obscure: obscurePassword,
+      controller: controller,
       suffix: IconButton(
         icon: Icon(
           obscurePassword
@@ -263,9 +381,11 @@ class _LoginScreenState extends State<LoginScreen> {
     required IconData icon,
     bool obscure = false,
     Widget? suffix,
+    TextEditingController? controller,
   }) {
     final c = context.appColors;
     return TextField(
+      controller: controller,
       obscureText: obscure,
       style: TextStyle(color: c.textMain),
       decoration: InputDecoration(
