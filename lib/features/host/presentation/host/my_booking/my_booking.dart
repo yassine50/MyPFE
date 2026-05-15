@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pfe/core/localization/app_strings.dart';
 import 'package:pfe/core/theme/app_colors.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/features/host/presentation/host/invitation_details/invitation_details.dart';
@@ -13,7 +14,7 @@ class MyBooking extends StatefulWidget {
 class _MyBookingsPageState extends State<MyBooking> {
   int _selectedTab = 0;
 
-  final List<String> _tabs = ['Requests (2)', 'Upcoming', 'History'];
+  final List<String> _tabs = [AppStrings.requests, AppStrings.upcoming, AppStrings.history];
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +27,7 @@ class _MyBookingsPageState extends State<MyBooking> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'My Bookings',
+          AppStrings.myBookings,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -111,9 +112,9 @@ class _MyBookingsPageState extends State<MyBooking> {
                 // Urgent Request Card
                 _buildRequestCard(
                   expireIcon: Icons.timer,
-                  expireText: 'Expires in 12h',
+                  expireText: AppStrings.expires12h,
                   expireColor: const Color(0xFFEA580C),
-                  badgeText: 'NEW',
+                  badgeText: AppStrings.newBadge,
                   badgeColor: const Color(0xFFDBEAFE),
                   badgeTextColor: const Color(0xFF136DEC),
                   title: 'Cozy Studio in Cluj',
@@ -131,9 +132,9 @@ class _MyBookingsPageState extends State<MyBooking> {
                 // Very Urgent Request Card
                 _buildRequestCard(
                   expireIcon: Icons.error,
-                  expireText: 'Expires in 45m',
+                  expireText: AppStrings.expires45m,
                   expireColor: const Color(0xFFDC2626),
-                  badgeText: 'LONG TERM',
+                  badgeText: AppStrings.longTermBadge,
                   badgeColor: const Color(0xFFF3E8FF),
                   badgeTextColor: const Color(0xFF9333EA),
                   title: 'Modern Loft in Bucharest',
@@ -158,7 +159,7 @@ class _MyBookingsPageState extends State<MyBooking> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: Text(
-                          'Upcoming',
+                          AppStrings.upcoming,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -450,7 +451,7 @@ class _MyBookingsPageState extends State<MyBooking> {
                       ),
                     ),
                     child: Text(
-                      'Decline',
+                      AppStrings.decline,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -472,8 +473,8 @@ class _MyBookingsPageState extends State<MyBooking> {
                       ),
                       elevation: 1,
                     ),
-                    child: const Text(
-                      'Accept',
+                    child: Text(
+                      AppStrings.accept,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,

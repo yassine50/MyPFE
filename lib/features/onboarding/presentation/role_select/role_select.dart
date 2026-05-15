@@ -30,16 +30,16 @@ class RoleSelect extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // 📝 Title
-                const Text(
+                Text(
                   AppStrings.roleSelectTitle,
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 8),
 
-                const Text(
+                Text(
                   AppStrings.roleSelectSubtitle,
-                  style: TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.grey),
                 ),
 
                 const SizedBox(height: 20),
@@ -92,11 +92,11 @@ class RoleSelect extends StatelessWidget {
                 const SizedBox(height: 30),
 
                 // 📄 Terms
-                const Center(
+                Center(
                   child: Text(
                     AppStrings.roleTerms,
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ),
               ],

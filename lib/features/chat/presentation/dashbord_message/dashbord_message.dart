@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pfe/core/localization/app_strings.dart';
 import 'package:pfe/features/chat/presentation/chat/chat.dart';
 
 class ConversationPreview {
@@ -91,7 +92,7 @@ class _InboxScreenState extends State<InboxWidget> {
   ];
 
   int selectedFilter = 0;
-  final List<String> filters = ['All', 'Unread', 'Archived', 'Support'];
+  final List<String> filters = [AppStrings.filterAll, AppStrings.filterUnread, AppStrings.filterArchived, AppStrings.filterSupport];
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +158,7 @@ class _InboxScreenState extends State<InboxWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Inbox',
+                      AppStrings.inbox,
                       style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
@@ -208,7 +209,7 @@ class _InboxScreenState extends State<InboxWidget> {
                       Expanded(
                         child: TextField(
                           decoration: InputDecoration(
-                            hintText: 'Search messages or properties...',
+                            hintText: AppStrings.searchMessages,
                             hintStyle: TextStyle(
                               color: isDark
                                   ? Colors.grey[400]
@@ -260,7 +261,7 @@ class _InboxScreenState extends State<InboxWidget> {
                                           : Colors.grey[600]),
                               ),
                             ),
-                            if (filters[index] == 'Unread' && unreadCount > 0)
+                            if (filters[index] == AppStrings.filterUnread && unreadCount > 0)
                               Padding(
                                 padding: const EdgeInsets.only(left: 4),
                                 child: Container(
@@ -317,7 +318,7 @@ class _InboxScreenState extends State<InboxWidget> {
                         padding: const EdgeInsets.all(32.0),
                         child: Center(
                           child: Text(
-                            "You're all caught up!",
+                            AppStrings.allCaughtUp,
                             style: TextStyle(
                               color: isDark
                                   ? Colors.grey[400]
@@ -512,7 +513,7 @@ class _InboxScreenState extends State<InboxWidget> {
                                 borderRadius: BorderRadius.circular(2),
                               ),
                               child: Text(
-                                'Past Guest',
+                                AppStrings.pastGuest,
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,

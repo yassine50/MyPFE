@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pfe/core/localization/app_strings.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/features/profile/presentation/profile/profile.dart';
@@ -66,7 +67,7 @@ class _SettingsPageState extends State<Setting> {
         children: [
           Expanded(
             child: Text(
-              'Settings',
+              AppStrings.settingsTitle,
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 18,
@@ -150,7 +151,7 @@ class _SettingsPageState extends State<Setting> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Edit Profile',
+                          AppStrings.editProfile,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -186,7 +187,7 @@ class _SettingsPageState extends State<Setting> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Text(
-              'GENERAL',
+              AppStrings.sectionGeneral,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -217,7 +218,7 @@ class _SettingsPageState extends State<Setting> {
                 _buildSettingItem(
                   c: c,
                   icon: Icons.language,
-                  title: 'Language',
+                  title: AppStrings.language,
                   value: 'English',
                   onTap: () {
                     // Handle language tap
@@ -228,7 +229,7 @@ class _SettingsPageState extends State<Setting> {
                 _buildSettingItem(
                   c: c,
                   icon: Icons.currency_exchange,
-                  title: 'Currency',
+                  title: AppStrings.currency,
                   value: 'RON',
                   onTap: () {
                     // Handle currency tap
@@ -254,7 +255,7 @@ class _SettingsPageState extends State<Setting> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Text(
-              'NOTIFICATIONS',
+              AppStrings.sectionNotifications,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -285,7 +286,7 @@ class _SettingsPageState extends State<Setting> {
                 _buildToggleItem(
                   c: c,
                   icon: Icons.notifications,
-                  title: 'Push Notifications',
+                  title: AppStrings.pushNotifications,
                   value: _pushNotifications,
                   onChanged: (value) {
                     setState(() {
@@ -298,7 +299,7 @@ class _SettingsPageState extends State<Setting> {
                 _buildToggleItem(
                   c: c,
                   icon: Icons.mail,
-                  title: 'Email Updates',
+                  title: AppStrings.emailUpdates,
                   value: _emailUpdates,
                   onChanged: (value) {
                     setState(() {
@@ -326,7 +327,7 @@ class _SettingsPageState extends State<Setting> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Text(
-              'PAYMENTS & SUBSCRIPTION',
+              AppStrings.sectionPayments,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -357,7 +358,7 @@ class _SettingsPageState extends State<Setting> {
                 _buildSettingItem(
                   c: c,
                   icon: Icons.credit_card,
-                  title: 'Payment Methods',
+                  title: AppStrings.paymentMethods,
                   value: '',
                   onTap: () {
                     // Handle payment methods tap
@@ -368,7 +369,7 @@ class _SettingsPageState extends State<Setting> {
                 _buildSettingItem(
                   c: c,
                   icon: Icons.receipt_long,
-                  title: 'Billing History',
+                  title: AppStrings.billingHistory,
                   value: '',
                   onTap: () {
                     // Handle billing history tap
@@ -394,7 +395,7 @@ class _SettingsPageState extends State<Setting> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Text(
-              'PRIVACY & SECURITY',
+              AppStrings.sectionPrivacy,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -425,7 +426,7 @@ class _SettingsPageState extends State<Setting> {
                 _buildSettingItem(
                   c: c,
                   icon: Icons.lock,
-                  title: 'Change Password',
+                  title: AppStrings.changePassword,
                   value: '',
                   onTap: () {
                     // Handle change password tap
@@ -436,7 +437,7 @@ class _SettingsPageState extends State<Setting> {
                 _buildToggleItem(
                   c: c,
                   icon: Icons.face,
-                  title: 'FaceID Login',
+                  title: AppStrings.faceIdLogin,
                   value: _faceIDLogin,
                   onChanged: (value) {
                     setState(() {
@@ -464,7 +465,7 @@ class _SettingsPageState extends State<Setting> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Text(
-              'SUPPORT',
+              AppStrings.sectionSupport,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -495,7 +496,7 @@ class _SettingsPageState extends State<Setting> {
                 _buildSettingItem(
                   c: c,
                   icon: Icons.help,
-                  title: 'Help Center',
+                  title: AppStrings.helpCenter,
                   value: '',
                   onTap: () {
                     // Handle help center tap
@@ -506,7 +507,7 @@ class _SettingsPageState extends State<Setting> {
                 _buildSettingItem(
                   c: c,
                   icon: Icons.description,
-                  title: 'Terms of Service',
+                  title: AppStrings.termsOfService,
                   value: '',
                   onTap: () {
                     // Handle terms tap
@@ -551,7 +552,7 @@ class _SettingsPageState extends State<Setting> {
                 side: BorderSide.none,
               ),
               child: Text(
-                'Log Out',
+                AppStrings.logOut,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

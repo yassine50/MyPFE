@@ -1,10 +1,74 @@
 import 'package:flutter/material.dart';
 
 class Amenetis extends StatelessWidget {
-  const Amenetis({super.key});
+  final List<String> amenities;
+
+  const Amenetis({super.key, required this.amenities});
+
+  IconData _getIconForAmenity(String amenity) {
+    switch (amenity.toLowerCase()) {
+      case 'wifi':
+      case 'internet':
+        return Icons.wifi;
+      case 'kitchen':
+        return Icons.kitchen;
+      case 'laundry':
+      case 'washer':
+      case 'dryer':
+        return Icons.local_laundry_service;
+      case 'ac':
+      case 'air conditioning':
+        return Icons.ac_unit;
+      case 'balcony':
+        return Icons.balcony;
+      case 'desk':
+      case 'workspace':
+        return Icons.work;
+      case 'tv':
+        return Icons.tv;
+      case 'heating':
+        return Icons.thermostat;
+      case 'parking':
+        return Icons.local_parking;
+      default:
+        return Icons.check_circle_outline;
+    }
+  }
+
+  String _getLabelForAmenity(String amenity) {
+    switch (amenity.toLowerCase()) {
+      case 'wifi':
+        return 'Fast Wi-Fi';
+      case 'kitchen':
+        return 'Full Kitchen';
+      case 'laundry':
+        return 'Washer/Dryer';
+      case 'ac':
+        return 'Air Conditioning';
+      case 'balcony':
+        return 'Balcony';
+      case 'desk':
+        return 'Desk Area';
+      case 'tv':
+        return 'Smart TV';
+      case 'heating':
+        return 'Heating';
+      case 'parking':
+        return 'Free Parking';
+      default:
+        // Capitalize first letter
+        if (amenity.isEmpty) return amenity;
+        return amenity[0].toUpperCase() + amenity.substring(1);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (amenities.isEmpty) return const SizedBox.shrink();
+
+    // Show up to 6 amenities in the grid
+    final displayAmenities = amenities.take(6).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -20,33 +84,32 @@ class Amenetis extends StatelessWidget {
           childAspectRatio: 5,
           mainAxisSpacing: 4,
           crossAxisSpacing: 8,
-          children: const [
-            _AmenityItem(icon: Icons.wifi, label: "Fast Wi-Fi"),
-            _AmenityItem(icon: Icons.kitchen, label: "Full Kitchen"),
-            _AmenityItem(
-              icon: Icons.local_laundry_service,
-              label: "Washer/Dryer",
-            ),
-            _AmenityItem(icon: Icons.ac_unit, label: "Air Conditioning"),
-            _AmenityItem(icon: Icons.balcony, label: "Balcony"),
-            _AmenityItem(icon: Icons.work, label: "Desk Area"),
-          ],
+          children: displayAmenities.map((amenity) {
+            return _AmenityItem(
+              icon: _getIconForAmenity(amenity),
+              label: _getLabelForAmenity(amenity),
+            );
+          }).toList(),
         ),
 
-        OutlinedButton(
-          onPressed: () {},
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 48),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        if (amenities.length > 6)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: OutlinedButton(
+              onPressed: () {},
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                side: const BorderSide(
+                  color: Color.fromARGB(255, 228, 225, 225),
+                ),
+                foregroundColor: Colors.black,
+              ),
+              child: Text("Show all ${amenities.length} amenities"),
             ),
-            side: const BorderSide(
-              color: Color.fromARGB(255, 228, 225, 225), // 👈 outline color
-            ),
-            foregroundColor: Colors.black, // 👈 text (and icon) color
           ),
-          child: const Text("Show all 15 amenities"),
-        ),
       ],
     );
   }
@@ -64,7 +127,13 @@ class _AmenityItem extends StatelessWidget {
       children: [
         Icon(icon, color: Colors.grey.shade500, size: 22),
         const SizedBox(width: 12),
-        Text(label, style: const TextStyle(fontSize: 13)),
+        Flexible(
+          child: Text(
+            label, 
+            style: const TextStyle(fontSize: 13),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }

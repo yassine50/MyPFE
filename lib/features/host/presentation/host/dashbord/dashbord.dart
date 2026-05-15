@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pfe/core/localization/app_strings.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 
@@ -112,7 +113,7 @@ class _HostDashboardPageState extends State<Dashbord> {
           Expanded(
             child: Center(
               child: Text(
-                'Host Dashboard',
+                AppStrings.hostDashboard,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -176,7 +177,7 @@ class _HostDashboardPageState extends State<Dashbord> {
         children: [
           // Section Title
           Text(
-            'Performance Overview',
+            AppStrings.performanceOverview,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -194,7 +195,7 @@ class _HostDashboardPageState extends State<Dashbord> {
               // Monthly Earnings Card
               Expanded(
                 child: _buildStatCard(
-                  title: 'Monthly Earnings',
+                  title: AppStrings.monthlyEarnings,
                   value: '€4,820',
                   trend: '+12.4%',
                   isPositive: true,
@@ -207,7 +208,7 @@ class _HostDashboardPageState extends State<Dashbord> {
               // Occupancy Rate Card
               Expanded(
                 child: _buildStatCard(
-                  title: 'Occupancy Rate',
+                  title: AppStrings.occupancyRate,
                   value: '94%',
                   trend: '+3.1%',
                   isPositive: true,
@@ -325,7 +326,7 @@ class _HostDashboardPageState extends State<Dashbord> {
                       const Icon(Icons.add_box, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'New Listing',
+                        AppStrings.btnNewListing,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -359,7 +360,7 @@ class _HostDashboardPageState extends State<Dashbord> {
                       const Icon(Icons.sync, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'Sync Calendar',
+                        AppStrings.btnSyncCalendar,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -387,7 +388,7 @@ class _HostDashboardPageState extends State<Dashbord> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Active Reservations',
+                AppStrings.activeReservations,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -401,7 +402,7 @@ class _HostDashboardPageState extends State<Dashbord> {
                   _viewAllReservations(c);
                 },
                 child: Text(
-                  'View all',
+                  AppStrings.viewAll,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -537,7 +538,7 @@ class _HostDashboardPageState extends State<Dashbord> {
         children: [
           // Section Title
           Text(
-            'Recent Messages',
+            AppStrings.recentMessages,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -660,7 +661,7 @@ class _HostDashboardPageState extends State<Dashbord> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Notifications',
+                  AppStrings.notifications,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -690,7 +691,7 @@ class _HostDashboardPageState extends State<Dashbord> {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(
-                    'Close',
+                    AppStrings.close,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

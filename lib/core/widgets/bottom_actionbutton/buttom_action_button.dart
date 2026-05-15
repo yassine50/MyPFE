@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:pfe/features/booking/presentation/send_request/send_request.dart';
 
 class ButtomActionButton extends StatelessWidget {
-  const ButtomActionButton({super.key});
+  final String price;
+  const ButtomActionButton({super.key, required this.price});
 
   @override
   Widget build(BuildContext context) {
@@ -24,14 +25,14 @@ class ButtomActionButton extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '€450',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  price,
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-                Text(
+                const Text(
                   'per month',
                   style: TextStyle(fontSize: 13, color: Colors.grey),
                 ),

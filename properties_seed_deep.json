@@ -1,0 +1,80 @@
+{
+  "properties": {
+    "prop1": {
+      "title": "Modern Studio in Pipera",
+      "subtitle": "Wifi included • Near Metro",
+      "price": "350€/mo",
+      "rating": "4.9",
+      "imageUrl": "https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*",
+      "isFeatured": true,
+      "isColiving": false,
+      "description": "Enjoy a bright, fully furnished private studio in Pipera. You'll have complete privacy with your own kitchen and bathroom. The apartment features a spacious living area and a beautiful view of the city.",
+      "moveInDate": "Jan 15",
+      "roomType": "Entire Apt",
+      "amenities": ["wifi", "kitchen", "ac", "tv"],
+      "residentDemographics": "None • Entire Place",
+      "reviews": [
+        {"name": "Andrei T.", "date": "Dec 2023", "text": "Perfect studio for a single professional."},
+        {"name": "Elena P.", "date": "Nov 2023", "text": "Very clean and near the metro station. Highly recommended!"}
+      ]
+    },
+    "prop3": {
+      "title": "3-Bed Apt near Poli",
+      "subtitle": "Regie area • 3 Rooms",
+      "price": "600€/mo",
+      "rating": "4.7",
+      "imageUrl": "https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*",
+      "isFeatured": false,
+      "isColiving": true,
+      "description": "Awesome 3-bedroom apartment located right next to the university. Great community vibe, fast internet, and massive kitchen for cooking with roommates.",
+      "moveInDate": "Now",
+      "roomType": "Private Room",
+      "amenities": ["wifi", "kitchen", "laundry", "balcony", "desk"],
+      "residentDemographics": "2 Males • Students",
+      "reviews": [
+        {"name": "Mihai C.", "date": "Oct 2023", "text": "Great place to study and live!"}
+      ]
+    },
+    "prop5": {
+      "title": "Luxury Penthouse in Herastrau",
+      "subtitle": "Lake View • 4 Rooms",
+      "price": "1500€/mo",
+      "rating": "5.0",
+      "imageUrl": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1120&q=80",
+      "isFeatured": true,
+      "isColiving": false,
+      "description": "Live in luxury in this stunning Herastrau penthouse. Featuring panoramic lake views, state-of-the-art appliances, underfloor heating, and 24/7 security. Perfect for executives.",
+      "moveInDate": "Feb 1",
+      "roomType": "Entire Penthouse",
+      "amenities": ["wifi", "kitchen", "laundry", "ac", "balcony", "parking", "tv", "heating"],
+      "residentDemographics": "None • Entire Place",
+      "reviews": [
+        {"name": "Alex V.", "date": "Jan 2024", "text": "Absolutely stunning. Best apartment in Bucharest."}
+      ]
+    },
+    "prop8": {
+      "title": "Coliving Space in Old Town",
+      "subtitle": "Historic Center • 6 Beds",
+      "price": "400€/mo",
+      "rating": "4.8",
+      "imageUrl": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1120&q=80",
+      "isFeatured": false,
+      "isColiving": true,
+      "description": "Join our vibrant coliving community right in the heart of Old Town! Ideal for digital nomads and young professionals. Weekly community events and super-fast internet.",
+      "moveInDate": "Now",
+      "roomType": "Shared Room",
+      "amenities": ["wifi", "kitchen", "laundry", "desk", "heating"],
+      "residentDemographics": "3 Males, 2 Females • Digital Nomads",
+      "residentAvatars": [
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80",
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+      ],
+      "reviews": [
+        {"name": "Sarah K.", "date": "Dec 2023", "text": "Amazing community! Made so many friends here."}
+      ]
+    }
+  }
+}

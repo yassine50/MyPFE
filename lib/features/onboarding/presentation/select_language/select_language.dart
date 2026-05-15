@@ -5,9 +5,9 @@ import 'package:pfe/core/widgets/card/language_select.dart';
 import 'package:pfe/core/widgets/text/text.dart';
 import 'package:pfe/features/onboarding/presentation/select_language/bloc/select_lang_bloc.dart';
 import 'package:pfe/features/auth/presentation/login/login.dart';
+import 'package:pfe/core/localization/app_strings.dart';
 
 class LanguageSelectionScreen extends StatelessWidget {
-  static SelectLangBloc select = SelectLangBloc();
   const LanguageSelectionScreen({super.key});
 
   @override
@@ -35,7 +35,7 @@ class LanguageSelectionScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 32),
                   Text1(
-                    text: 'Select Language',
+                    text: AppStrings.selectLanguageTitle,
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
@@ -46,7 +46,7 @@ class LanguageSelectionScreen extends StatelessWidget {
               const SizedBox(height: 8),
 
               Text1(
-                text: 'Please select your preferred language to continue',
+                text: AppStrings.selectLanguageSubtitle,
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
                 color: Colors.grey,
@@ -55,7 +55,6 @@ class LanguageSelectionScreen extends StatelessWidget {
               const SizedBox(height: 16),
 
               BlocBuilder<SelectLangBloc, SelectLangState>(
-                bloc: select,
                 builder: (context, state) {
                   final int selectedIndex = state is SelectLangInitial
                       ? state.selectedIndex
@@ -67,7 +66,7 @@ class LanguageSelectionScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         return GestureDetector(
                           onTap: () {
-                            select.add(SelectLanguageEvent(index));
+                            context.read<SelectLangBloc>().add(SelectLanguageEvent(index));
                           },
                           child: SelectLanguage(
                             select: index == selectedIndex,

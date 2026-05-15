@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pfe/core/localization/app_strings.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 
@@ -19,12 +20,12 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
       'location': 'Bucharest, Romania',
       'dates': '14 Nov - 20 Nov 2023',
       'status': 'confirmed',
-      'statusText': 'Confirmed',
+      'statusText': AppStrings.statusConfirmed,
       'statusColor': Colors.green,
       'statusIcon': Icons.check_circle,
       'image':
           'https://lh3.googleusercontent.com/aida-public/AB6AXuBHKqiCSvmCqD-kSqMLCQIWVGMwgXyptLiCRomPOHHSQKPA9VskIb3GZb8-dJYbeer_aSJPEBqglMIfsu-ZgBT0sUUNv0Bx5R0gOrpv25KJB0KpixDQ5gviYWpRyqUkRo5NeiFHhJ5h7OykJWnJzobk74fVWtMkoxxv2wzF_uQDQB89-5YinqmvOxMQJ8ouotc6rQvm3VsSX61-mq8eI-ArcT0cprIEsdqsIxsk_gUttPuQfZTpSbGfbxA_aBjfsAWHBrkPv91iNZY',
-      'primaryButtonText': 'Message Host',
+      'primaryButtonText': AppStrings.btnMessageHost,
       'primaryButtonAction': 'message',
       'secondaryButtonIcon': Icons.map,
       'secondaryButtonAction': 'map',
@@ -35,12 +36,12 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
       'location': 'Brasov, Romania',
       'dates': '10 Dec - 15 Dec 2023',
       'status': 'checkin_soon',
-      'statusText': 'Check-in Soon',
+      'statusText': AppStrings.statusCheckInSoon,
       'statusColor': Colors.amber,
       'statusIcon': Icons.hourglass_top,
       'image':
           'https://lh3.googleusercontent.com/aida-public/AB6AXuDRVuL_msPu6KA2s66LXK6Vo19oY-qk9ziOado1tiK17uaduF464A6WFNKLKjZSuUX-HLLRqW7dhdgZxM8aNXOK5PUk5u8Jt3no1PYielkiqQg7sE8qiODHZ9QFMyN6PUMCC0Ai_-ZP9EYloOqcAw2QyKl48jAJVtH4jBsS7AJM-317mQ83cljC5jDKTN4lvfQiJfZRAgmXUqwg3HaymZ2BuF-oqFB4aJY1oSSs6lawh5BU0loMFBH6DWp2XHiNLUz_zawAt1w00fY',
-      'primaryButtonText': 'View Details',
+      'primaryButtonText': AppStrings.btnViewDetails,
       'primaryButtonAction': 'details',
       'secondaryButtonIcon': Icons.call,
       'secondaryButtonAction': 'call',
@@ -51,12 +52,12 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
       'location': 'Cluj-Napoca, Romania',
       'dates': '05 Jan - 08 Jan 2024',
       'status': 'saved',
-      'statusText': 'Saved',
+      'statusText': AppStrings.statusSaved,
       'statusColor': Colors.blue,
       'statusIcon': Icons.bookmark,
       'image':
           'https://lh3.googleusercontent.com/aida-public/AB6AXuBoFttS8R7hCY_xMc24Iit-TzVEwRoHxrvcX6kmeBoQsMo04qdEEsF4Jl-0_RvmxCMgsydmsBtClsrIPTSUjOB-eUVyGyPMHfDo_yX_9vD4zgSHPACIfI_vssLRQ-8K1avmKK6EfazWfviENRCuNBkuZWAq5SaMyFneMV7A6AyFB_LR7wrDK5lFJy_OjR3ZW57E5TpuEtszrqxZQTIAfMiJQPWy9-bRMeZHLrQ0Sp1V4jWZa5puX0X9rcmxlBoyyONQ4i4yqK5wCNM',
-      'primaryButtonText': 'Complete Booking',
+      'primaryButtonText': AppStrings.btnCompleteBooking,
       'primaryButtonAction': 'complete',
       'secondaryButtonIcon': null,
       'secondaryButtonAction': null,
@@ -112,7 +113,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
             children: [
               // Title
               Text(
-                'My Bookings',
+                AppStrings.myBookings,
                 style: GoogleFonts.publicSans(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -149,7 +150,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
 
   // Segmented Buttons
   Widget _buildSegmentedButtons(AppColorScheme c) {
-    final List<String> segments = ['Upcoming', 'Past', 'Cancelled'];
+    final List<String> segments = [AppStrings.upcoming, AppStrings.past, AppStrings.cancelled];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -479,7 +480,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Booking History',
+                  AppStrings.bookingHistory,
                   style: GoogleFonts.publicSans(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -488,7 +489,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                 ),
                 const SizedBox(height: 20),
                 _buildHistoryItem(
-                  title: 'Completed (12)',
+                  title: AppStrings.completedBookings,
                   c: c,
                   onTap: () {
                     setState(() {
@@ -498,7 +499,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                   },
                 ),
                 _buildHistoryItem(
-                  title: 'Cancelled (2)',
+                  title: AppStrings.cancelledBookings,
                   c: c,
                   onTap: () {
                     setState(() {
@@ -508,7 +509,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                   },
                 ),
                 _buildHistoryItem(
-                  title: 'All Bookings',
+                  title: AppStrings.allBookings,
                   c: c,
                   onTap: () {
                     Navigator.pop(context);
@@ -518,7 +519,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(
-                    'Close',
+                    AppStrings.close,
                     style: GoogleFonts.publicSans(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -597,7 +598,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                 const SizedBox(height: 20),
                 _buildOptionItem(
                   icon: Icons.edit,
-                  label: 'Modify Booking',
+                  label: AppStrings.modifyBooking,
                   c: c,
                   onTap: () {
                     Navigator.pop(context);
@@ -606,7 +607,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                 ),
                 _buildOptionItem(
                   icon: Icons.cancel,
-                  label: 'Cancel Booking',
+                  label: AppStrings.cancelBooking,
                   c: c,
                   onTap: () {
                     Navigator.pop(context);
@@ -615,7 +616,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                 ),
                 _buildOptionItem(
                   icon: Icons.receipt,
-                  label: 'View Receipt',
+                  label: AppStrings.viewReceipt,
                   c: c,
                   onTap: () {
                     Navigator.pop(context);
@@ -624,7 +625,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                 ),
                 _buildOptionItem(
                   icon: Icons.share,
-                  label: 'Share Details',
+                  label: AppStrings.shareDetails,
                   c: c,
                   onTap: () {
                     Navigator.pop(context);
@@ -635,7 +636,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(
-                    'Cancel',
+                    AppStrings.cancel,
                     style: GoogleFonts.publicSans(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -767,7 +768,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
-            'Cancel Booking',
+            AppStrings.cancelBooking,
             style: GoogleFonts.publicSans(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -785,7 +786,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Keep Booking',
+                AppStrings.keepBooking,
                 style: GoogleFonts.publicSans(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -809,7 +810,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                 );
               },
               child: Text(
-                'Cancel Booking',
+                AppStrings.cancelBooking,
                 style: GoogleFonts.publicSans(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

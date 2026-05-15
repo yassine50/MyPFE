@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pfe/core/widgets/text/text.dart';
 
+import 'package:pfe/core/models/property_model.dart';
 class TitleOfRoom extends StatelessWidget {
-  const TitleOfRoom({super.key});
+  final PropertyModel property;
+  const TitleOfRoom({super.key, required this.property});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +24,7 @@ class TitleOfRoom extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text1(
-          text: 'Sunny Private Room near Old Town',
+          text: property.title,
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: Colors.black,
@@ -37,7 +39,7 @@ class TitleOfRoom extends StatelessWidget {
             Icon(Icons.location_on, size: 16, color: Colors.grey[700]),
             const SizedBox(width: 6),
             Text1(
-              text: 'Bucharest • 2.5 km from center',
+              text: property.subtitle,
               fontSize: 13,
               fontWeight: FontWeight.normal,
               color: Colors.grey[700]!,
@@ -51,12 +53,12 @@ class TitleOfRoom extends StatelessWidget {
             const Icon(Icons.star, size: 16, color: Colors.amber),
             const SizedBox(width: 6),
             // const SizedBox(width: 4),
-            const Text(
-              '4.8',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            Text(
+              property.rating,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             Text(
-              ' (124 reviews)',
+              ' (${property.reviews.length} reviews)',
               style: TextStyle(fontSize: 13, color: Colors.grey[600]),
             ),
           ],

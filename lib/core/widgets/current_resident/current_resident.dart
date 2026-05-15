@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
 class CurrentResident extends StatelessWidget {
-  const CurrentResident({super.key});
+  final String demographics;
+  final List<String> avatars;
+
+  const CurrentResident({
+    super.key,
+    required this.demographics,
+    required this.avatars,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,19 +24,19 @@ class CurrentResident extends StatelessWidget {
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
+            children: [
+              const Text(
                 "Current Residents",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
-                "2 Males, 1 Female • Young Pros",
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                demographics,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),
-          const _AvatarStack(),
+          _AvatarStack(avatars: avatars),
         ],
       ),
     );
@@ -37,38 +44,60 @@ class CurrentResident extends StatelessWidget {
 }
 
 class _AvatarStack extends StatelessWidget {
-  const _AvatarStack();
+  final List<String> avatars;
+
+  const _AvatarStack({required this.avatars});
 
   @override
   Widget build(BuildContext context) {
+    final displayAvatars = avatars.take(3).toList();
+    
     return Row(
       children: [
-        _avatar("https://images.unsplash.com/photo-1500648767791-00dcc994a43e"),
-        _avatar("https://images.unsplash.com/photo-1494790108377-be9c29b29330"),
-        _avatar("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d"),
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2),
+        ...displayAvatars.map((url) => _avatar(url)),
+        if (avatars.length > 3)
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: Center(
+              child: Text(
+                '+${avatars.length - 3}',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+            ),
+          )
+        else
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: const Icon(Icons.chevron_right, size: 20),
           ),
-          child: const Icon(Icons.chevron_right, size: 20),
-        ),
       ],
     );
   }
 }
 
 Widget _avatar(String url) {
-  return Container(
-    width: 40,
-    height: 40,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      border: Border.all(color: Colors.white, width: 2),
-      image: DecorationImage(image: NetworkImage(url), fit: BoxFit.cover),
+  return Align(
+    widthFactor: 0.7,
+    child: Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        image: DecorationImage(image: NetworkImage(url), fit: BoxFit.cover),
+      ),
     ),
   );
 }

@@ -2,20 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/features/property_details/presentation/detail_screen/detail_screen.dart';
 
+import 'package:pfe/core/models/property_model.dart';
 class CardHome extends StatefulWidget {
-  final String price;
-  final String title;
-  final String subtitle;
-  final String rating;
-  final String imageUrl;
+  final PropertyModel property;
 
   const CardHome({
     super.key,
-    required this.price,
-    required this.title,
-    required this.subtitle,
-    required this.rating,
-    required this.imageUrl,
+    required this.property,
   });
 
   @override
@@ -31,7 +24,7 @@ class _CardHomeState extends State<CardHome> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => DetailScreen()),
+          MaterialPageRoute(builder: (_) => DetailScreen(property: widget.property)),
         );
       },
       child: Container(
@@ -53,7 +46,7 @@ class _CardHomeState extends State<CardHome> {
                       top: Radius.circular(20),
                     ),
                     child: Image.network(
-                      widget.imageUrl,
+                      widget.property.images.isNotEmpty ? widget.property.images.first : '',
                       width: double.infinity,
                       height: double.infinity,
                       fit: BoxFit.cover,
@@ -101,7 +94,7 @@ class _CardHomeState extends State<CardHome> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        widget.price,
+                        widget.property.price,
                         style: GoogleFonts.firaSans(
                           fontWeight: FontWeight.w600,
                         ),
@@ -119,12 +112,12 @@ class _CardHomeState extends State<CardHome> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.title,
+                    widget.property.title,
                     style: GoogleFonts.firaSans(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    widget.subtitle,
+                    widget.property.subtitle,
                     style: GoogleFonts.firaSans(
                       fontSize: 12,
                       color: Colors.grey,
@@ -135,7 +128,7 @@ class _CardHomeState extends State<CardHome> {
                     children: [
                       const Icon(Icons.star, size: 14, color: Colors.amber),
                       const SizedBox(width: 4),
-                      Text(widget.rating),
+                      Text(widget.property.rating),
                     ],
                   ),
                 ],

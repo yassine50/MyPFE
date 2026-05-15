@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pfe/core/localization/app_strings.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 
@@ -98,7 +99,7 @@ class _SavedRoomsPageState extends State<Saved> {
 
           // Title
           Text(
-            'Saved Rooms',
+            AppStrings.savedRoomsTitle,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -140,7 +141,7 @@ class _SavedRoomsPageState extends State<Saved> {
 
   // Filter Buttons
   Widget _buildFilterButtons(AppColorScheme c) {
-    final List<String> filters = ['All Properties', 'Co-living', 'Apartments'];
+    final List<String> filters = [AppStrings.filterAllProperties, AppStrings.filterColiving, AppStrings.filterApartments];
 
     return SizedBox(
       height: 40,
@@ -366,7 +367,7 @@ class _SavedRoomsPageState extends State<Saved> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '/month',
+                        AppStrings.perMonth,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -390,7 +391,7 @@ class _SavedRoomsPageState extends State<Saved> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Remove',
+                          AppStrings.removeButton,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -496,7 +497,7 @@ class _SavedRoomsPageState extends State<Saved> {
               const SizedBox(height: 20),
               _buildOptionItem(
                 icon: Icons.sort,
-                label: 'Sort by',
+                label: AppStrings.sortBy,
                 c: c,
                 onTap: () {
                   Navigator.pop(context);
@@ -505,7 +506,7 @@ class _SavedRoomsPageState extends State<Saved> {
               ),
               _buildOptionItem(
                 icon: Icons.filter_list,
-                label: 'Filter',
+                label: AppStrings.filter,
                 c: c,
                 onTap: () {
                   Navigator.pop(context);
@@ -514,7 +515,7 @@ class _SavedRoomsPageState extends State<Saved> {
               ),
               _buildOptionItem(
                 icon: Icons.download,
-                label: 'Export list',
+                label: AppStrings.exportList,
                 c: c,
                 onTap: () {
                   Navigator.pop(context);
@@ -523,7 +524,7 @@ class _SavedRoomsPageState extends State<Saved> {
               ),
               _buildOptionItem(
                 icon: Icons.share,
-                label: 'Share list',
+                label: AppStrings.shareList,
                 c: c,
                 onTap: () {
                   Navigator.pop(context);
@@ -539,7 +540,7 @@ class _SavedRoomsPageState extends State<Saved> {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'Cancel',
+                  AppStrings.cancel,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -603,7 +604,7 @@ class _SavedRoomsPageState extends State<Saved> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
-                  'Sort by',
+                  AppStrings.sortBy,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -613,7 +614,7 @@ class _SavedRoomsPageState extends State<Saved> {
               ),
               const SizedBox(height: 20),
               _buildSortOption(
-                label: 'Price: Low to High',
+                label: AppStrings.priceLowToHigh,
                 c: c,
                 onTap: () {
                   Navigator.pop(context);
@@ -621,7 +622,7 @@ class _SavedRoomsPageState extends State<Saved> {
                 },
               ),
               _buildSortOption(
-                label: 'Price: High to Low',
+                label: AppStrings.priceHighToLow,
                 c: c,
                 onTap: () {
                   Navigator.pop(context);
@@ -629,7 +630,7 @@ class _SavedRoomsPageState extends State<Saved> {
                 },
               ),
               _buildSortOption(
-                label: 'Rating',
+                label: AppStrings.rating,
                 c: c,
                 onTap: () {
                   Navigator.pop(context);
@@ -637,7 +638,7 @@ class _SavedRoomsPageState extends State<Saved> {
                 },
               ),
               _buildSortOption(
-                label: 'Date Saved',
+                label: AppStrings.dateSaved,
                 c: c,
                 onTap: () {
                   Navigator.pop(context);
@@ -653,7 +654,7 @@ class _SavedRoomsPageState extends State<Saved> {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'Cancel',
+                  AppStrings.cancel,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -742,7 +743,7 @@ class _SavedRoomsPageState extends State<Saved> {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Cancel',
+                AppStrings.cancel,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -764,7 +765,7 @@ class _SavedRoomsPageState extends State<Saved> {
                 );
               },
               child: Text(
-                'Remove',
+                AppStrings.removeButton,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

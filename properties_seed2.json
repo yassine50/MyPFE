@@ -1,0 +1,58 @@
+{
+  "properties": {
+    "prop5": {
+      "title": "Luxury Penthouse in Herastrau",
+      "subtitle": "Lake View • 4 Rooms",
+      "price": "1500€/mo",
+      "rating": "5.0",
+      "imageUrl": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1120&q=80",
+      "isFeatured": true,
+      "isColiving": false
+    },
+    "prop6": {
+      "title": "Cozy Room in Shared Villa",
+      "subtitle": "Baneasa • Garden Access",
+      "price": "300€/mo",
+      "rating": "4.6",
+      "imageUrl": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1120&q=80",
+      "isFeatured": false,
+      "isColiving": true
+    },
+    "prop7": {
+      "title": "Minimalist Apt in Dorobanti",
+      "subtitle": "City Center • 2 Rooms",
+      "price": "850€/mo",
+      "rating": "4.9",
+      "imageUrl": "https://images.unsplash.com/photo-1502672260266-1c1de2d9d0cb?auto=format&fit=crop&w=1120&q=80",
+      "isFeatured": true,
+      "isColiving": false
+    },
+    "prop8": {
+      "title": "Coliving Space in Old Town",
+      "subtitle": "Historic Center • 6 Beds",
+      "price": "400€/mo",
+      "rating": "4.8",
+      "imageUrl": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1120&q=80",
+      "isFeatured": false,
+      "isColiving": true
+    },
+    "prop9": {
+      "title": "Bohemian Loft in Floreasca",
+      "subtitle": "Pet Friendly • 3 Rooms",
+      "price": "1100€/mo",
+      "rating": "4.9",
+      "imageUrl": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1120&q=80",
+      "isFeatured": true,
+      "isColiving": false
+    },
+    "prop10": {
+      "title": "Shared Apartment Tineretului",
+      "subtitle": "Near Park • 2 Rooms Available",
+      "price": "350€/mo",
+      "rating": "4.4",
+      "imageUrl": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1120&q=80",
+      "isFeatured": false,
+      "isColiving": true
+    }
+  }
+}

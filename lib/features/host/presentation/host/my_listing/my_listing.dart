@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pfe/core/localization/app_strings.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 
 class MyListing extends StatelessWidget {
@@ -20,7 +21,7 @@ class MyListing extends StatelessWidget {
           onPressed: () {},
         ),
         title: Text(
-          'My Listings',
+          AppStrings.myListings,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -45,20 +46,20 @@ class MyListing extends StatelessWidget {
               children: [
                 _buildStatCard(
                   count: '12',
-                  label: 'Active',
+                  label: AppStrings.active,
                   isActive: true, c: AppColorScheme.light(),
                 ),
                 const SizedBox(width: 12),
                 _buildStatCard(
                   c: AppColorScheme.light(),
                   count: '3',
-                  label: 'Drafts',
+                  label: AppStrings.drafts,
                   isActive: false,
                 ),
                 const SizedBox(width: 12),
                 _buildStatCard(
                   count: '1',
-                  label: 'Hidden',
+                  label: AppStrings.hidden,
                   isActive: false,
                   c: AppColorScheme.light()
                 ),
@@ -73,7 +74,7 @@ class MyListing extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'All properties (16)',
+                  AppStrings.allProperties,
                   style: TextStyle(
                     fontSize: 14,
                     color: const Color(0xFF6B7280),
@@ -83,8 +84,8 @@ class MyListing extends StatelessWidget {
                 TextButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.tune, size: 16),
-                  label: const Text(
-                    'Filter',
+                  label: Text(
+                    AppStrings.filter,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -112,7 +113,7 @@ class MyListing extends StatelessWidget {
                   title: 'Victory Square Modern Studio',
                   location: 'Bucharest, Sector 1',
                   price: '€850',
-                  status: 'Active',
+                  status: AppStrings.active,
                   isActive: true,
                   c: AppColorScheme.light()
                 ),
@@ -123,7 +124,7 @@ class MyListing extends StatelessWidget {
                   title: 'Cluj-Napoca Central Loft',
                   location: 'Cluj-Napoca, City Center',
                   price: '€1,200',
-                  status: 'Active',
+                  status: AppStrings.active,
                   isActive: true,
                   c: AppColorScheme.light()
                 ),
@@ -134,7 +135,7 @@ class MyListing extends StatelessWidget {
                   title: 'Old Town Brașov House',
                   location: 'Brașov, Historic Center',
                   price: '€950',
-                  status: 'Hidden',
+                  status: AppStrings.hidden,
                   isActive: false,
                   c: AppColorScheme.light()
                 ),
@@ -377,7 +378,7 @@ class MyListing extends StatelessWidget {
                     color: Color(0xFF9CA3AF),
                   ),
                   label: Text(
-                    'Edit Listing',
+                    AppStrings.editListing,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -405,7 +406,7 @@ class MyListing extends StatelessWidget {
                     color: const Color(0xFF9CA3AF),
                   ),
                   label: Text(
-                    isActive ? 'Stats' : 'Preview',
+                    isActive ? AppStrings.stats : AppStrings.preview,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

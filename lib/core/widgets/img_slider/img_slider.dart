@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class ImgSlider extends StatefulWidget {
-  const ImgSlider({super.key});
+  final List<String> images;
+  const ImgSlider({super.key, required this.images});
 
   @override
   State<ImgSlider> createState() => _ImgSliderState();
@@ -12,14 +13,18 @@ class ImgSlider extends StatefulWidget {
 class _ImgSliderState extends State<ImgSlider> {
   int _currentImage = 0;
 
-  final List<String> _images = [
-    'https://images.unsplash.com/photo-1615529182904-14819c35db37?w=1200',
-    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200',
-    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200',
-    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200',
-  ];
+
   @override
   Widget build(BuildContext context) {
+    if (widget.images.isEmpty) {
+      return SizedBox(
+        height: MediaQuery.of(context).size.width * 0.75,
+        child: const Center(
+          child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+        ),
+      );
+    }
+
     return SizedBox(
       height: MediaQuery.of(context).size.width * 0.75,
       child: Stack(
@@ -34,33 +39,37 @@ class _ImgSliderState extends State<ImgSlider> {
                 setState(() => _currentImage = index);
               },
             ),
-            items: _images.map((url) {
+            items: widget.images.map((url) {
               return Image.network(
                 url,
                 fit: BoxFit.cover,
                 width: double.infinity,
+                errorBuilder: (context, error, stackTrace) => const Center(
+                  child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                ),
               );
             }).toList(),
           ),
 
-          Positioned(
-            bottom: 16,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: AnimatedSmoothIndicator(
-                activeIndex: _currentImage,
-                count: _images.length,
-                effect: const ScrollingDotsEffect(
-                  dotHeight: 8,
-                  dotWidth: 8,
-                  spacing: 8,
-                  activeDotColor: Colors.white,
-                  dotColor: Colors.white60,
+          if (widget.images.length > 1)
+            Positioned(
+              bottom: 16,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: AnimatedSmoothIndicator(
+                  activeIndex: _currentImage,
+                  count: widget.images.length,
+                  effect: const ScrollingDotsEffect(
+                    dotHeight: 8,
+                    dotWidth: 8,
+                    spacing: 8,
+                    activeDotColor: Colors.white,
+                    dotColor: Colors.white60,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

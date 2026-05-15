@@ -1,0 +1,40 @@
+{
+  "properties": {
+    "prop1": {
+      "title": "Modern Studio in Pipera",
+      "subtitle": "Wifi included • Near Metro",
+      "price": "350€/mo",
+      "rating": "4.9",
+      "imageUrl": "https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*",
+      "isFeatured": true,
+      "isColiving": false
+    },
+    "prop2": {
+      "title": "Cozy 2-bedroom",
+      "subtitle": "Central Park",
+      "price": "500€/mo",
+      "rating": "4.8",
+      "imageUrl": "https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*",
+      "isFeatured": true,
+      "isColiving": false
+    },
+    "prop3": {
+      "title": "3-Bed Apt near Poli",
+      "subtitle": "Regie area • 3 Rooms",
+      "price": "600€/mo",
+      "rating": "4.7",
+      "imageUrl": "https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*",
+      "isFeatured": false,
+      "isColiving": true
+    },
+    "prop4": {
+      "title": "Sunny Flat in Unirii",
+      "subtitle": "Center • 2 Rooms",
+      "price": "480€/mo",
+      "rating": "4.5",
+      "imageUrl": "https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*",
+      "isFeatured": false,
+      "isColiving": true
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pfe/core/localization/app_strings.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/core/widgets/google_nav_bar/navbar.dart';
@@ -75,7 +76,7 @@ class Profile extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                'Profile',
+                AppStrings.profileTitle,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -267,7 +268,7 @@ class Profile extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'STAYS',
+                    AppStrings.stays,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
                       fontWeight: FontWeight.w500,
@@ -318,7 +319,7 @@ class Profile extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'RATING',
+                    AppStrings.rating,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
                       fontWeight: FontWeight.w500,
@@ -362,7 +363,7 @@ class Profile extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'RESPONSE',
+                    AppStrings.response,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
                       fontWeight: FontWeight.w500,
@@ -418,7 +419,7 @@ class Profile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Joined in',
+                  AppStrings.joinedIn,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -442,7 +443,7 @@ class Profile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Nationality',
+                  AppStrings.nationality,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -470,7 +471,7 @@ class Profile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Languages',
+                  AppStrings.preferredLanguage,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -494,7 +495,7 @@ class Profile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Occupation',
+                  AppStrings.occupation,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -539,7 +540,7 @@ class Profile extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Text(
-              'Account Settings',
+              AppStrings.accountSettings,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -554,7 +555,7 @@ class Profile extends StatelessWidget {
           _buildSettingListItem(
             c: c,
             icon: Icons.person,
-            title: 'Personal Information',
+            title: AppStrings.personalDetails,
             onTap: () {
               // Handle personal information tap
             },
@@ -696,7 +697,7 @@ class Profile extends StatelessWidget {
                     Icon(Icons.home_work, color: c.textMain, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      'Switch to Host Mode',
+                      AppStrings.switchToHostMode,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -728,7 +729,7 @@ class Profile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 child: Center(
                   child: Text(
-                    'Log Out',
+                    AppStrings.logOut,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

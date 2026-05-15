@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pfe/core/localization/app_strings.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/core/widgets/budget_card_home/budget_card_home.dart';
@@ -8,14 +10,31 @@ import 'package:pfe/core/widgets/search_bar/search_bar.dart';
 import 'package:pfe/core/widgets/filtre_buttons/filterbutton.dart';
 import 'package:pfe/core/widgets/header/header.dart';
 
-class HomeScreen extends StatefulWidget {
+import 'package:pfe/features/home/data/repositories/property_repository.dart';
+import 'package:pfe/features/home/presentation/bloc/home_bloc.dart';
+import 'package:pfe/features/home/presentation/bloc/home_event.dart';
+import 'package:pfe/features/home/presentation/bloc/home_state.dart';
+
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => HomeBloc(PropertyRepository())..add(LoadProperties()),
+      child: const HomeScreenView(),
+    );
+  }
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenView extends StatefulWidget {
+  const HomeScreenView({super.key});
+
+  @override
+  State<HomeScreenView> createState() => _HomeScreenViewState();
+}
+
+class _HomeScreenViewState extends State<HomeScreenView> {
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
@@ -42,19 +61,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Filterbutton(
                     active: true,
-                    text: 'Explore',
+                    text: AppStrings.navExplore,
                     icon: Icons.search,
                   ),
                   const SizedBox(width: 10),
                   Filterbutton(
                     active: false,
-                    text: 'Near Metro',
+                    text: AppStrings.filterNearMetro,
                     icon: Icons.subway,
                   ),
                   const SizedBox(width: 10),
                   Filterbutton(
                     active: false,
-                    text: 'Co-living',
+                    text: AppStrings.filterColiving,
                     icon: Icons.people_outline,
                   ),
                 ],
@@ -62,62 +81,79 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 24),
 
-              // 🔹 FEATURED LISTINGS
-              _sectionHeader('Featured Listings'),
+              // 🔹 DYNAMIC BLOC CONTENT
+              BlocBuilder<HomeBloc, HomeState>(
+                builder: (context, state) {
+                  if (state is HomeLoading || state is HomeInitial) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  } else if (state is HomeError) {
+                    return Center(
+                      child: Text(
+                        'Failed to load properties: ${state.message}',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    );
+                  } else if (state is HomeLoaded) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 🔹 FEATURED LISTINGS
+                        _sectionHeader(AppStrings.featuredListings),
+                        const SizedBox(height: 12),
 
-              const SizedBox(height: 12),
+                        if (state.featuredProperties.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Text('No featured listings available.'),
+                          )
+                        else
+                          SizedBox(
+                            height: 210,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: state.featuredProperties.length,
+                              itemBuilder: (context, index) {
+                                final prop = state.featuredProperties[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 12),
+                                  child: CardHome(property: prop),
+                                );
+                              },
+                            ),
+                          ),
 
-              SizedBox(
-                height: 210,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    CardHome(
-                      price: '350€/mo',
-                      title: 'Modern Studio in Pipera',
-                      subtitle: 'Wifi included • Near Metro',
-                      rating: '4.9',
-                      imageUrl:
-                          'https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*',
-                    ),
-                    CardHome(
-                      price: '500€/mo',
-                      title: 'Cozy 2-bedroom',
-                      subtitle: 'Central Park',
-                      rating: '4.8',
-                      imageUrl:
-                          'https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*',
-                    ),
-                  ],
-                ),
-              ),
+                        const SizedBox(height: 24),
 
-              const SizedBox(height: 24),
+                        // 🔹 BUDGET CARD
+                        BudgetCardHome(),
 
-              // 🔹 BUDGET CARD
-              BudgetCardHome(),
+                        const SizedBox(height: 24),
 
-              const SizedBox(height: 24),
+                        // 🔹 CO-LIVING
+                        _sectionHeader(AppStrings.bestForColiving),
+                        const SizedBox(height: 12),
 
-              // 🔹 CO-LIVING
-              _sectionHeader('Best for Co-living'),
+                        if (state.colivingProperties.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Text('No co-living listings available.'),
+                          )
+                        else
+                          ...state.colivingProperties.map((prop) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: ListCardHome(property: prop),
+                              )),
+                      ],
+                    );
+                  }
 
-              const SizedBox(height: 12),
-              ListCardHome(
-                title: '3-Bed Apt near Poli',
-                subtitle: 'Regie area • 3 Rooms',
-                price: '600€ / mo',
-                rating: '4.7',
-                imageUrl:
-                    'https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*',
-              ),
-              ListCardHome(
-                title: 'Sunny Flat in Unirii',
-                subtitle: 'Center • 2 Rooms',
-                price: '480€ / mo',
-                rating: '4.5',
-                imageUrl:
-                    'https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*',
+                  return const SizedBox.shrink();
+                },
               ),
 
               const SizedBox(height: 80),
@@ -131,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         onPressed: () {},
         icon: const Icon(Icons.map),
-        label: const Text('Map'),
+        label: Text(AppStrings.mapButton),
       ),
     );
   }
@@ -148,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         Text(
-          'See all',
+          AppStrings.seeAll,
           style: GoogleFonts.firaSans(
             fontSize: 13,
             color: const Color(0xFF1E6AF0),

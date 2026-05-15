@@ -3,6 +3,7 @@ import 'package:pfe/core/theme/app_colors.dart';
 import 'package:pfe/core/widgets/list_card_home/list_card_home.dart';
 import 'package:pfe/core/widgets/search_bar/search_bar.dart';
 import 'package:pfe/core/widgets/header/header.dart';
+import 'package:pfe/core/models/property_model.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -38,22 +39,30 @@ class _SearchScreenState extends State<SearchScreen> {
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: const [
+                children: [
                   ListCardHome(
-                    title: '3-Bed Apt near Poli',
-                    subtitle: 'Regie area • 3 Rooms',
-                    price: '600€ / mo',
-                    rating: '4.7',
-                    imageUrl:
-                        'https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*',
+                    property: PropertyModel(
+                      id: 'search1',
+                      title: '3-Bed Apt near Poli',
+                      subtitle: 'Regie area • 3 Rooms',
+                      price: '600€ / mo',
+                      rating: '4.7',
+                      images: [
+                          'https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*',
+                      ],
+                    ),
                   ),
                   ListCardHome(
-                    title: 'Sunny Flat in Unirii',
-                    subtitle: 'Center • 2 Rooms',
-                    price: '480€ / mo',
-                    rating: '4.5',
-                    imageUrl:
-                        'https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*',
+                    property: PropertyModel(
+                      id: 'search2',
+                      title: 'Sunny Flat in Unirii',
+                      subtitle: 'Center • 2 Rooms',
+                      price: '480€ / mo',
+                      rating: '4.5',
+                      images: [
+                          'https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*',
+                      ],
+                    ),
                   ),
                 ],
               ),

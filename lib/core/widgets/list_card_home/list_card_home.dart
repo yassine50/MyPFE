@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:pfe/core/models/property_model.dart';
+import 'package:pfe/features/property_details/presentation/detail_screen/detail_screen.dart';
 class ListCardHome extends StatefulWidget {
-  final String title;
-  final String subtitle;
-  final String price;
-  final String rating;
-  final String imageUrl;
+  final PropertyModel property;
 
   const ListCardHome({
     super.key,
-    required this.title,
-    required this.subtitle,
-    required this.price,
-    required this.rating,
-    required this.imageUrl,
+    required this.property,
   });
 
   @override
@@ -26,7 +20,9 @@ class _ListCardHomeState extends State<ListCardHome> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: () { Navigator.push(context, MaterialPageRoute(builder: (_) => DetailScreen(property: widget.property))); },
+      child: Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -39,7 +35,7 @@ class _ListCardHomeState extends State<ListCardHome> {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
-              widget.imageUrl,
+              widget.property.images.isNotEmpty ? widget.property.images.first : '',
               width: 60,
               height: 60,
               fit: BoxFit.cover,
@@ -54,12 +50,12 @@ class _ListCardHomeState extends State<ListCardHome> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.title,
+                  widget.property.title,
                   style: GoogleFonts.firaSans(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  widget.subtitle,
+                  widget.property.subtitle,
                   style: GoogleFonts.firaSans(fontSize: 12, color: Colors.grey),
                 ),
               ],
@@ -84,7 +80,7 @@ class _ListCardHomeState extends State<ListCardHome> {
               ),
               const SizedBox(height: 6),
               Text(
-                widget.price,
+                widget.property.price,
                 style: GoogleFonts.firaSans(
                   fontWeight: FontWeight.w700,
                   color: const Color(0xFF1E6AF0),
@@ -95,13 +91,13 @@ class _ListCardHomeState extends State<ListCardHome> {
                 children: [
                   const Icon(Icons.star, size: 14, color: Colors.amber),
                   const SizedBox(width: 4),
-                  Text(widget.rating),
+                  Text(widget.property.rating),
                 ],
               ),
             ],
           ),
         ],
       ),
-    );
+    ),);
   }
 }

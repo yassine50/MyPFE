@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class Ratingsummry extends StatelessWidget {
-  const Ratingsummry({super.key});
+  final String rating;
+  final int reviewsCount;
+  const Ratingsummry({super.key, required this.rating, required this.reviewsCount});
 
   @override
   Widget build(BuildContext context) {
@@ -34,13 +36,13 @@ class Ratingsummry extends StatelessWidget {
           child: Row(
             children: [
               Column(
-                children: const [
+                children: [
                   Text(
-                    "4.8",
-                    style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
+                    rating,
+                    style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
                   ),
-                  SizedBox(height: 4),
-                  Row(
+                  const SizedBox(height: 4),
+                  const Row(
                     children: [
                       Icon(Icons.star, size: 14, color: Colors.amber),
                       Icon(Icons.star, size: 14, color: Colors.amber),
@@ -49,10 +51,10 @@ class Ratingsummry extends StatelessWidget {
                       Icon(Icons.star_half, size: 14, color: Colors.amber),
                     ],
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    "124 reviews",
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    "$reviewsCount reviews",
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ),
