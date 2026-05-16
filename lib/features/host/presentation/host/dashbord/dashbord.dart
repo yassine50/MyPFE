@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pfe/core/localization/app_strings.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
+import 'package:pfe/features/host/presentation/host/add_listing/add_listing_step1_type.dart';
 
 class Dashbord extends StatefulWidget {
   const Dashbord({super.key});
@@ -308,28 +309,29 @@ class _HostDashboardPageState extends State<Dashbord> {
               // New Listing Button
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Create new listing
-                    _createNewListing(c);
-                  },
+                  onPressed: () => _createNewListing(c),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: c.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.add_box, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        AppStrings.btnNewListing,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          AppStrings.btnNewListing,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -342,28 +344,29 @@ class _HostDashboardPageState extends State<Dashbord> {
               // Sync Calendar Button
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Sync calendar
-                    _syncCalendar(c);
-                  },
+                  onPressed: () => _syncCalendar(c),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: c.primary.withValues(alpha: 0.1),
                     foregroundColor: c.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.sync, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        AppStrings.btnSyncCalendar,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          AppStrings.btnSyncCalendar,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -758,10 +761,10 @@ class _HostDashboardPageState extends State<Dashbord> {
 
   // Create New Listing
   void _createNewListing(AppColorScheme c) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Creating new listing...'),
-        duration: const Duration(seconds: 1),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AddListingStep1TypeScreen(),
       ),
     );
   }

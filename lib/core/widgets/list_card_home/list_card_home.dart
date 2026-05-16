@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 import 'package:pfe/core/models/property_model.dart';
 import 'package:pfe/features/property_details/presentation/detail_screen/detail_screen.dart';
@@ -16,10 +18,41 @@ class ListCardHome extends StatefulWidget {
 }
 
 class _ListCardHomeState extends State<ListCardHome> {
-  bool _isLiked = false;
+  void _toggleLike(bool isLiked) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to save properties.')),
+      );
+      return;
+    }
+
+    final ref = FirebaseDatabase.instance.ref('favorites/${user.uid}/${widget.property.id}');
+    if (isLiked) {
+      await ref.remove();
+    } else {
+      await ref.set({
+        'id': widget.property.id,
+        'addedAt': DateTime.now().toIso8601String(),
+      });
+    }
+  }
+
+  Widget _buildLikeButton(bool isLiked) {
+    return GestureDetector(
+      onTap: () => _toggleLike(isLiked),
+      child: Icon(
+        isLiked ? Icons.favorite : Icons.favorite_border,
+        size: 18,
+        color: isLiked ? Colors.red : Colors.grey,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return GestureDetector(
       onTap: () { Navigator.push(context, MaterialPageRoute(builder: (_) => DetailScreen(property: widget.property))); },
       child: Container(
@@ -66,18 +99,17 @@ class _ListCardHomeState extends State<ListCardHome> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isLiked = !_isLiked;
-                  });
-                },
-                child: Icon(
-                  _isLiked ? Icons.favorite : Icons.favorite_border,
-                  size: 18,
-                  color: _isLiked ? Colors.red : Colors.grey,
-                ),
-              ),
+              user == null
+                  ? _buildLikeButton(false)
+                  : StreamBuilder<DatabaseEvent>(
+                      stream: FirebaseDatabase.instance
+                          .ref('favorites/${user.uid}/${widget.property.id}')
+                          .onValue,
+                      builder: (context, snapshot) {
+                        final isLiked = snapshot.hasData && snapshot.data!.snapshot.value != null;
+                        return _buildLikeButton(isLiked);
+                      },
+                    ),
               const SizedBox(height: 6),
               Text(
                 widget.property.price,

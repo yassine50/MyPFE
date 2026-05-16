@@ -3,7 +3,11 @@ import 'package:pfe/core/localization/app_strings.dart';
 import 'package:pfe/core/theme/app_colors.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/features/host/presentation/host/invitation_details/invitation_details.dart';
-
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:pfe/features/home/data/repositories/property_repository.dart';
+import 'package:pfe/core/models/property_model.dart';
+import 'package:intl/intl.dart';
 class MyBooking extends StatefulWidget {
   const MyBooking({super.key});
 
@@ -15,6 +19,51 @@ class _MyBookingsPageState extends State<MyBooking> {
   int _selectedTab = 0;
 
   final List<String> _tabs = [AppStrings.requests, AppStrings.upcoming, AppStrings.history];
+  final _database = FirebaseDatabase.instance;
+  Map<String, PropertyModel> _properties = {};
+  bool _isLoadingProperties = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProperties();
+  }
+
+  Future<void> _fetchProperties() async {
+    try {
+      final properties = await PropertyRepository().fetchProperties();
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+      for (var p in properties) {
+        if (p.hostId == currentUserId) {
+          _properties[p.id] = p;
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch properties: $e');
+    }
+    if (mounted) {
+      setState(() {
+        _isLoadingProperties = false;
+      });
+    }
+  }
+
+  Future<void> _updateBookingStatus(String bookingId, String status) async {
+    try {
+      await _database.ref('bookings').child(bookingId).update({'status': status});
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Booking $status successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update booking: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,141 +155,126 @@ class _MyBookingsPageState extends State<MyBooking> {
 
           // Requests List
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                // Urgent Request Card
-                _buildRequestCard(
-                  expireIcon: Icons.timer,
-                  expireText: AppStrings.expires12h,
-                  expireColor: const Color(0xFFEA580C),
-                  badgeText: AppStrings.newBadge,
-                  badgeColor: const Color(0xFFDBEAFE),
-                  badgeTextColor: const Color(0xFF136DEC),
-                  title: 'Cozy Studio in Cluj',
-                  details: '3 nights • Oct 12 - Oct 15',
-                  renterImage:
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-rAu4s-PEK7B_VYpn6ZXhYC7sggA-FHEQoprl917XZaOqvlqBBJF6EVZzg6gzv6_-IQnvQ6oIRGiEXyaDDmjKutrJm4kmq4CxH8bvGcXkOP8I9Bn1lyLvkduYIeOiEED9hb3ndPfjK-298jDbksKyGwx_7R9MIzNaSruEAxuP5ZSkTAyp1OsP6yJsCB7knDAXHg1rMWHS3S5eaK4IIbcy-Du11tzngvAjCYh02Bdkwjv27IEdTsSKwyen3BF-TRpnNswot3pd0E',
-                  renterName: 'Andrei Popescu',
-                  renterRating: '4.9 ★',
-                  price: '€185',
-                  priceUnit: 'total',
-                  propertyImage:
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuD6xAP1anvHaBQ_PfwOmSrkkfRD7Wfk65JZ0EM93FQ4anRu1M1G8vNOrHXt20_kY_xpf3PCHzJuQpsB3-fkUIT-OEWAk0-H6bhscv1z4YRcehXPIZrlcZYEdKvxUwVzNATTQ0LbzmSfFM5k_IOtW6RG8yovA2WqBzt-Z6FTmPhPwDKm5RRoTxNJBRsfkV4a1VerM3iCJbWCZlSFgzzIF1_rgIDp9LmS1T2XqZlxBoEUBlTUbEqydWER6yixRXTzgdd3fbSEHTFK3Os', c:AppColorScheme.light(),
-                ),
-                const SizedBox(height: 16),
-                // Very Urgent Request Card
-                _buildRequestCard(
-                  expireIcon: Icons.error,
-                  expireText: AppStrings.expires45m,
-                  expireColor: const Color(0xFFDC2626),
-                  badgeText: AppStrings.longTermBadge,
-                  badgeColor: const Color(0xFFF3E8FF),
-                  badgeTextColor: const Color(0xFF9333EA),
-                  title: 'Modern Loft in Bucharest',
-                  details: '29 nights • Nov 1 - Nov 30',
-                  renterImage:
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuDbRglnLBV9mYFg5J02Wu7mCuHD4djpyEY4YPSr5Qq_dhgHWgW6ba70S6Xk5ySGqVURLORko2cRdF1M_m38-4qBsqGjLzDwRwRrOJT7-uALJVRWmGQ67SaDxVKXKCZwXE2YlK_Ai1sFzTO4Euugs_LggMjvI5ktL7kNZ437RmMXMRyIOH8Xh9o6ZQ1FQg3Y4YcVmeVWSuBYjhuITJeKw96eiAhDXejzF4zsRdiae92a9nNLDNy6QJAt--u84Xy4OLbZwd5VI5-o3Ho',
-                  renterName: 'Maria Ionescu',
-                  renterRating: 'New',
-                  price: '€1,200',
-                  priceUnit: '/ month',
-                  propertyImage:
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuDHEmy8TSMq5m_4l_5s1HDi8H8t0plQ3FkTsG7BjC0zpY1jl-RDqd8Ve_HLAkxhif3-MrBW-8-MMugBjuhV3hQGbMdfyxxxAxEC6sruCQnpbbiKopHRATfaqDgvt9dwqEieQXoW4aJuAtauI7dU9bZJLKyxHT4mVm-zkTcaLxYM5F932t7FdhASrkB8Kvg53ZWzico6k5YEi6Zn7J_XjLo1kcJiIt5cNzVJOMTyOQ14n4f5r2YTXfoOfiWI74fNkhH3pxbSGaOPYn4',
-                  isUrgent: true, c: AppColorScheme.light(),
-                ),
-                const SizedBox(height: 24),
-                // Upcoming Teaser
-                Opacity(
-                  opacity: 0.5,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Text(
-                          AppStrings.upcoming,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: c.textMain,
+            child: _isLoadingProperties
+                ? const Center(child: CircularProgressIndicator())
+                : StreamBuilder<DatabaseEvent>(
+                    stream: _database.ref('bookings').onValue,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      }
+                      if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
+                        return Center(
+                          child: Text(
+                            'No bookings found.',
+                            style: TextStyle(color: c.textSecondary, fontSize: 16),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: c.card,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 4,
-                              spreadRadius: 0,
-                              offset: const Offset(0, 0),
-                            ),
-                          ],
-                        ),
+                        );
+                      }
+
+                      final data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+                      final bookings = data.entries.map((e) {
+                        final val = e.value as Map<dynamic, dynamic>;
+                        return {
+                          'id': e.key.toString(),
+                          ...val,
+                        };
+                      }).toList();
+
+                      // Filter based on tab and property ownership
+                      // 0 = requests (pending), 1 = upcoming (accepted), 2 = history (rejected/completed)
+                      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+                      final filteredBookings = bookings.where((b) {
+                        final propertyId = b['propertyId']?.toString() ?? '';
+                        // Must be a property the host owns
+                        if (!_properties.containsKey(propertyId)) return false;
+                        
+                        // Prevent host from seeing their own test requests to themselves as incoming?
+                        // Or maybe they just meant they shouldn't see requests for properties they don't own.
+                        // Let's hide requests sent by the host themselves, to be safe.
+                        if (b['guestId']?.toString() == currentUserId) return false;
+
+                        final status = b['status']?.toString() ?? 'pending';
+                        if (_selectedTab == 0) return status == 'pending';
+                        if (_selectedTab == 1) return status == 'accepted';
+                        if (_selectedTab == 2) return status == 'rejected' || status == 'completed';
+                        return false;
+                      }).toList();
+                      
+                      // Sort by createdAt descending
+                      filteredBookings.sort((a, b) {
+                        final aTime = (a['createdAt'] ?? 0) as int;
+                        final bTime = (b['createdAt'] ?? 0) as int;
+                        return bTime.compareTo(aTime);
+                      });
+
+                      if (filteredBookings.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'No items in this category.',
+                            style: TextStyle(color: c.textSecondary, fontSize: 16),
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
                         padding: const EdgeInsets.all(16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Confirmed',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: const Color(0xFF617289),
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Sunny 2BR Apartment',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: c.textMain,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Dec 15 - Dec 20',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: const Color(0xFF617289),
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Container(
-                              width: 96,
-                              height: 96,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                image: const DecorationImage(
-                                  image: NetworkImage(
-                                    'https://lh3.googleusercontent.com/aida-public/AB6AXuCxDhwwCvMvAv4UQhZtNQIANSTxdOL4ysBMoLlB4_5UZPm3E62kb9c7qHvbaWmqWGt38Aywt0okJqyL2xw62jlX-KDRq9J89_QN3nlgIn8S8O-Yu1yUsjlaUgjzn0ObFDz9f_Ab1MnPioCj-R92ON0fvJRXzjLP3OayvGxPoqDeCIeDNUAa6EBHY-SLSryZFucfVP_dy-rDb31DWbdU0MORAOCdREXs0Rri6FbnXavvuXNwsnYWZZzgwr2yb2cr3YcXMQ0IyI9F5zs',
-                                  ),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                        itemCount: filteredBookings.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 16),
+                        itemBuilder: (context, index) {
+                          final booking = filteredBookings[index];
+                          final propertyId = booking['propertyId']?.toString() ?? '';
+                          final property = _properties[propertyId];
+                          
+                          final moveInStr = booking['moveInDate']?.toString() ?? '';
+                          final moveOutStr = booking['moveOutDate']?.toString() ?? '';
+                          
+                          DateTime? moveIn;
+                          DateTime? moveOut;
+                          try { moveIn = DateTime.parse(moveInStr); } catch (_) {}
+                          try { moveOut = DateTime.parse(moveOutStr); } catch (_) {}
+                          
+                          final nights = moveIn != null && moveOut != null 
+                              ? moveOut.difference(moveIn).inDays 
+                              : 0;
+                              
+                          final dateRange = moveIn != null && moveOut != null
+                              ? '${DateFormat('MMM d').format(moveIn)} - ${DateFormat('MMM d').format(moveOut)}'
+                              : 'Unknown dates';
+
+                          final title = property?.title ?? 'Unknown Property';
+                          final propertyImage = property?.images.isNotEmpty == true
+                              ? property!.images.first
+                              : 'https://placehold.co/400x400/png';
+                              
+                          final totalPrice = booking['totalPrice']?.toString() ?? '0';
+
+                          return _buildRequestCard(
+                            bookingId: booking['id'] as String,
+                            status: booking['status']?.toString() ?? 'pending',
+                            c: c,
+                            expireIcon: Icons.timer,
+                            expireText: AppStrings.expires12h,
+                            expireColor: const Color(0xFFEA580C),
+                            badgeText: AppStrings.newBadge,
+                            badgeColor: const Color(0xFFDBEAFE),
+                            badgeTextColor: const Color(0xFF136DEC),
+                            title: title,
+                            details: '$nights nights • $dateRange',
+                            renterImage: 'https://i.pravatar.cc/150?u=${booking['guestId']}',
+                            renterName: 'Guest User', // We don't have user profiles fetched yet
+                            renterRating: 'New',
+                            price: '€$totalPrice',
+                            priceUnit: 'total',
+                            propertyImage: propertyImage,
+                          );
+                        },
+                      );
+                    },
                   ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -248,6 +282,8 @@ class _MyBookingsPageState extends State<MyBooking> {
   }
 
   Widget _buildRequestCard({
+    required String bookingId,
+    required String status,
     required AppColorScheme c,
     required IconData expireIcon,
     required String expireText,
@@ -435,57 +471,77 @@ class _MyBookingsPageState extends State<MyBooking> {
             ),
             const SizedBox(height: 12),
             // Action Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      side: BorderSide(
-                        color: c.border,
+            if (status == 'pending')
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _updateBookingStatus(bookingId, 'rejected'),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        side: BorderSide(
+                          color: c.border,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      AppStrings.decline,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: c.textMain,
-                        letterSpacing: 0.15,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF136DEC),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 1,
-                    ),
-                    child: Text(
-                      AppStrings.accept,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 0.15,
+                      child: Text(
+                        AppStrings.decline,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: c.textMain,
+                          letterSpacing: 0.15,
+                        ),
                       ),
                     ),
                   ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _updateBookingStatus(bookingId, 'accepted'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF136DEC),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 1,
+                      ),
+                      child: Text(
+                        AppStrings.accept,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 0.15,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            if (status != 'pending')
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: status == 'accepted' ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
-            ),
+                child: Center(
+                  child: Text(
+                    status.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: status == 'accepted' ? Colors.green : Colors.red,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

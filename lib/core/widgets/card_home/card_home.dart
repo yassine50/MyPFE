@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/features/property_details/presentation/detail_screen/detail_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 import 'package:pfe/core/models/property_model.dart';
 class CardHome extends StatefulWidget {
@@ -16,10 +18,30 @@ class CardHome extends StatefulWidget {
 }
 
 class _CardHomeState extends State<CardHome> {
-  bool _isLiked = false;
+  void _toggleLike(bool isLiked) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to save properties.')),
+      );
+      return;
+    }
+
+    final ref = FirebaseDatabase.instance.ref('favorites/${user.uid}/${widget.property.id}');
+    if (isLiked) {
+      await ref.remove();
+    } else {
+      await ref.set({
+        'id': widget.property.id,
+        'addedAt': DateTime.now().toIso8601String(),
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -57,27 +79,17 @@ class _CardHomeState extends State<CardHome> {
                   Positioned(
                     top: 10,
                     right: 10,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _isLiked = !_isLiked;
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          _isLiked ? Icons.favorite : Icons.favorite_border,
-                          color: _isLiked ? Colors.red : Colors.grey,
-                          size: 20,
-                        ),
-                      ),
-                    ),
+                    child: user == null
+                        ? _buildLikeButton(false)
+                        : StreamBuilder<DatabaseEvent>(
+                            stream: FirebaseDatabase.instance
+                                .ref('favorites/${user.uid}/${widget.property.id}')
+                                .onValue,
+                            builder: (context, snapshot) {
+                              final isLiked = snapshot.hasData && snapshot.data!.snapshot.value != null;
+                              return _buildLikeButton(isLiked);
+                            },
+                          ),
                   ),
 
                   /// PRICE TAG
@@ -135,6 +147,26 @@ class _CardHomeState extends State<CardHome> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLikeButton(bool isLiked) {
+    return GestureDetector(
+      onTap: () => _toggleLike(isLiked),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          isLiked ? Icons.favorite : Icons.favorite_border,
+          color: isLiked ? Colors.red : Colors.grey,
+          size: 20,
         ),
       ),
     );

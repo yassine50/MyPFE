@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/features/search/presentation/search_screen/search_screen.dart';
 
+import 'package:pfe/core/models/property_model.dart';
+
 class BudgetCardHome extends StatefulWidget {
-  const BudgetCardHome({super.key});
+  final List<PropertyModel> properties;
+  const BudgetCardHome({super.key, required this.properties});
 
   @override
   State<BudgetCardHome> createState() => _BudgetCardHomeState();
@@ -13,6 +16,13 @@ class _BudgetCardHomeState extends State<BudgetCardHome> {
   double _budget = 450;
   @override
   Widget build(BuildContext context) {
+    final filteredProperties = widget.properties.where((p) {
+      final priceStr = p.price.replaceAll(RegExp(r'[^0-9]'), '');
+      if (priceStr.isEmpty) return false;
+      final priceNum = int.tryParse(priceStr) ?? 0;
+      return priceNum <= _budget;
+    }).toList();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -130,14 +140,14 @@ class _BudgetCardHomeState extends State<BudgetCardHome> {
               ),
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (context) => SearchScreen()),
+                  MaterialPageRoute<void>(builder: (context) => SearchScreen(properties: filteredProperties)),
                 );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Show 124 Rentals',
+                    'Show ${filteredProperties.length} Rentals',
                     style: GoogleFonts.firaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

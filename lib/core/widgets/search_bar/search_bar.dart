@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pfe/features/search/presentation/search_screen/search_screen.dart';
 
 class Searchbar extends StatelessWidget {
   const Searchbar({super.key});
@@ -26,13 +27,20 @@ class Searchbar extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 10),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3F5F7),
-            borderRadius: BorderRadius.circular(14),
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (context) => const SearchScreen()),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F5F7),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.tune),
           ),
-          child: const Icon(Icons.tune),
         ),
       ],
     );

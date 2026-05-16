@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:pfe/core/localization/app_strings.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:pfe/core/models/property_model.dart';
 
 class Saved extends StatefulWidget {
   const Saved({super.key});
@@ -12,44 +15,6 @@ class Saved extends StatefulWidget {
 
 class _SavedRoomsPageState extends State<Saved> {
   int _selectedFilterIndex = 0;
-  final List<Map<String, dynamic>> _savedRooms = [
-    {
-      'id': '1',
-      'title': 'Cozy Penthouse in Bucharest',
-      'location': 'Sector 1, walking distance to Herastrau Park',
-      'price': 850,
-      'rating': 4.92,
-      'image':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuBZvBhM371uLOjgeFlo4r0EZ9HEkngbe7OX42HupmO7GVLKZHFq0GGLs-l23qlDwY55Kq7oWn_ekto3N8pA1Nug85KJSnMNClX08-lTWZOMHCegbmK6qRO0HydAqrm-WVsEg-Bv4s6ms4bkzbJCEMB6A-nNWBdcEePjNvUl3BbQ495O70mi2QZBdMh3r6WfUGzoHXbvji7XObEwaXzJ_TGE0nS6070M0RPP9xVCIG_lGxBWVGybEmEuZQapLnO_Ws3BRvavDqPrC8E',
-      'isFavorite': true,
-      'badgeType': 'verified',
-      'badgeText': 'Verified Host',
-    },
-    {
-      'id': '2',
-      'title': 'Modern Co-living Cluj',
-      'location': 'Zorilor District, High-speed fiber included',
-      'price': 420,
-      'rating': 4.85,
-      'image':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuA-V2EWkxGKd05n1_EDcGVnmiGx1j0BZPhjN6-Nhu6h4Q6hi6FiIGe0t4VibrwoJCGabE3MGuvo7dk0YKHXF_wiFNnZLS3yTZ7GtBsZK8Qnq4IQlThoPmnmSACWvChw-7L_9TFT_o62DCQRKeyRTvnD8sGcMBh27r4PWyn2TyrkOhn9ZbmoF24FIuyenIwiLRzdgmD3k_KyrdhAZT6REn4xz9KD6yydIUcHO6vZFjAHMmbLXCzupT0a4QxCvVjiUtWKMlqVd4xVT38',
-      'isFavorite': true,
-      'badgeType': 'professional',
-      'badgeText': 'Professional',
-    },
-    {
-      'id': '3',
-      'title': 'Luminous Studio Timișoara',
-      'location': 'City Center, newly renovated architecture',
-      'price': 380,
-      'rating': 4.70,
-      'image':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuBs5CxfewJGGHHbpTMcJdmbKm4u9B_oabUbdCe0Q9DK0Jitmv6S2Lai_zLs4586P-UInD_E3PfA4OwrqNku7862ptuVtDfHFxE96jA544hOq2b3nKbV2yIckMCUxD2L06lIvYBh95yujBGlycnrmwpjO7tP8CXgnzBJ8DtecTh4BIW6AvfYfXhx-31ZH4UJaT0dOw63FRut8eTJMzIJJrzlv07KN_TwJPzsysohaGhp2GqYJ1Yj8VhNa63usPyGWcF5j_7TgSQo2aQ',
-      'isFavorite': true,
-      'badgeType': null,
-      'badgeText': null,
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -201,20 +166,76 @@ class _SavedRoomsPageState extends State<Saved> {
 
   // Rooms List
   Widget _buildRoomsList(AppColorScheme c) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _savedRooms.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 32),
-      itemBuilder: (context, index) {
-        final room = _savedRooms[index];
-        return _buildRoomCard(room, c);
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return Center(
+        child: Text('Please log in to see saved rooms.', style: TextStyle(color: c.textSecondary)),
+      );
+    }
+
+    return StreamBuilder<DatabaseEvent>(
+      stream: FirebaseDatabase.instance.ref('favorites/${user.uid}').onValue,
+      builder: (context, favoritesSnapshot) {
+        if (favoritesSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final favoritesData = favoritesSnapshot.data?.snapshot.value as Map<dynamic, dynamic>?;
+        if (favoritesData == null || favoritesData.isEmpty) {
+          return Center(
+            child: Text('No saved rooms yet.', style: TextStyle(color: c.textSecondary)),
+          );
+        }
+
+        final favoriteIds = favoritesData.keys.map((e) => e.toString()).toSet();
+
+        return StreamBuilder<DatabaseEvent>(
+          stream: FirebaseDatabase.instance.ref('properties').onValue,
+          builder: (context, propertiesSnapshot) {
+            if (propertiesSnapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final propertiesData = propertiesSnapshot.data?.snapshot.value as Map<dynamic, dynamic>?;
+            if (propertiesData == null) {
+              return Center(
+                child: Text('No properties found.', style: TextStyle(color: c.textSecondary)),
+              );
+            }
+
+            final List<PropertyModel> savedProperties = [];
+            propertiesData.forEach((key, value) {
+              if (favoriteIds.contains(key.toString())) {
+                savedProperties.add(PropertyModel.fromJson(value as Map<dynamic, dynamic>, key.toString()));
+              }
+            });
+
+            if (savedProperties.isEmpty) {
+              return Center(
+                child: Text('No saved properties found.', style: TextStyle(color: c.textSecondary)),
+              );
+            }
+
+            return ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: savedProperties.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 32),
+              itemBuilder: (context, index) {
+                final property = savedProperties[index];
+                return _buildRoomCard(property, c);
+              },
+            );
+          },
+        );
       },
     );
   }
 
   // Room Card
-  Widget _buildRoomCard(Map<String, dynamic> room, AppColorScheme c) {
+  Widget _buildRoomCard(PropertyModel room, AppColorScheme c) {
+    final imageUrl = room.images.isNotEmpty ? room.images.first : 'https://placehold.co/400x400/png';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -227,7 +248,7 @@ class _SavedRoomsPageState extends State<Saved> {
               children: [
                 // Room Image
                 Image.network(
-                  room['image']!,
+                  imageUrl,
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
@@ -263,13 +284,11 @@ class _SavedRoomsPageState extends State<Saved> {
                       const SizedBox(height: 8),
                       // Favorite Button
                       _buildImageActionButton(
-                        icon: room['isFavorite']
-                            ? Icons.favorite
-                            : Icons.favorite_border,
+                        icon: Icons.favorite,
                         c: c,
                         iconColor: Colors.red,
                         onTap: () {
-                          _toggleFavorite(room['id']);
+                          _toggleFavorite(room.id);
                         },
                       ),
                     ],
@@ -277,7 +296,7 @@ class _SavedRoomsPageState extends State<Saved> {
                 ),
 
                 // Badge at Bottom Left
-                if (room['badgeType'] != null)
+                if (room.isColiving)
                   Positioned(
                     bottom: 16,
                     left: 16,
@@ -303,7 +322,7 @@ class _SavedRoomsPageState extends State<Saved> {
                 children: [
                   Expanded(
                     child: Text(
-                      room['title'],
+                      room.title,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -320,7 +339,7 @@ class _SavedRoomsPageState extends State<Saved> {
                       const Icon(Icons.star, color: Colors.amber, size: 18),
                       const SizedBox(width: 4),
                       Text(
-                        room['rating'].toString(),
+                        room.rating,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -336,7 +355,7 @@ class _SavedRoomsPageState extends State<Saved> {
 
               // Location
               Text(
-                room['location'],
+                room.subtitle,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   color: c.textSecondary,
@@ -358,20 +377,11 @@ class _SavedRoomsPageState extends State<Saved> {
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        '€${room['price']}',
+                        room.price,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: c.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        AppStrings.perMonth,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: c.textSecondary,
                         ),
                       ),
                     ],
@@ -380,7 +390,7 @@ class _SavedRoomsPageState extends State<Saved> {
                   // Remove Button
                   GestureDetector(
                     onTap: () {
-                      _removeRoom(room['id']);
+                      _removeRoom(room.id);
                     },
                     child: Row(
                       children: [
@@ -439,7 +449,7 @@ class _SavedRoomsPageState extends State<Saved> {
   }
 
   // Badge Widget
-  Widget _buildBadge(Map<String, dynamic> room, AppColorScheme c) {
+  Widget _buildBadge(PropertyModel room, AppColorScheme c) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -459,7 +469,7 @@ class _SavedRoomsPageState extends State<Saved> {
           Icon(Icons.verified, color: c.primary, size: 16),
           const SizedBox(width: 6),
           Text(
-            room['badgeText']!,
+            'Coliving',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11,
               fontWeight: FontWeight.bold,
@@ -691,25 +701,20 @@ class _SavedRoomsPageState extends State<Saved> {
   }
 
   // Toggle Favorite
-  void _toggleFavorite(String roomId) {
-    setState(() {
-      final index = _savedRooms.indexWhere((room) => room['id'] == roomId);
-      if (index != -1) {
-        _savedRooms[index]['isFavorite'] = !_savedRooms[index]['isFavorite'];
-
-        // Show feedback
+  void _toggleFavorite(String roomId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final ref = FirebaseDatabase.instance.ref('favorites/${user.uid}/$roomId');
+      await ref.remove();
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _savedRooms[index]['isFavorite']
-                  ? 'Added to favorites'
-                  : 'Removed from favorites',
-            ),
-            duration: const Duration(seconds: 1),
+          const SnackBar(
+            content: Text('Removed from favorites'),
+            duration: Duration(seconds: 1),
           ),
         );
       }
-    });
+    }
   }
 
   // Remove Room
@@ -754,15 +759,7 @@ class _SavedRoomsPageState extends State<Saved> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                setState(() {
-                  _savedRooms.removeWhere((room) => room['id'] == roomId);
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Property removed from saved list'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+                _toggleFavorite(roomId);
               },
               child: Text(
                 AppStrings.removeButton,
@@ -780,11 +777,11 @@ class _SavedRoomsPageState extends State<Saved> {
   }
 
   // Share Room
-  void _shareRoom(Map<String, dynamic> room) {
+  void _shareRoom(PropertyModel room) {
     // Implement share functionality
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Sharing ${room['title']}...'),
+        content: Text('Sharing ${room.title}...'),
         duration: const Duration(seconds: 1),
       ),
     );

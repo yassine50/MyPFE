@@ -1,32 +1,35 @@
 class Message {
   final String id;
+  final String senderId;
   final String content;
-  final DateTime sentAt;
+  final DateTime timestamp;
   final bool isRead;
 
   Message({
     required this.id,
+    required this.senderId,
     required this.content,
-    required this.sentAt,
+    required this.timestamp,
     required this.isRead,
   });
 
-  factory Message.fromJson(Map<String, dynamic> json) {
+  factory Message.fromMap(Map<dynamic, dynamic> map, String id) {
     return Message(
-      id: json['id'] as String? ?? '',
-      content: json['content'] as String? ?? '',
-      sentAt: json['sentAt'] != null
-          ? DateTime.parse(json['sentAt'] as String)
+      id: id,
+      senderId: map['senderId']?.toString() ?? '',
+      content: map['content']?.toString() ?? '',
+      timestamp: map['timestamp'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['timestamp'] as int)
           : DateTime.now(),
-      isRead: json['isRead'] as bool? ?? false,
+      isRead: map['isRead'] as bool? ?? false,
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      'senderId': senderId,
       'content': content,
-      'sentAt': sentAt.toIso8601String(),
+      'timestamp': timestamp.millisecondsSinceEpoch,
       'isRead': isRead,
     };
   }

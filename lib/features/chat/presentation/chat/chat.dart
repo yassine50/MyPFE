@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:pfe/core/theme/app_colors.dart';
 import 'package:pfe/core/theme/app_theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:pfe/core/models/message_model.dart' as model;
+import 'package:pfe/features/chat/data/repositories/chat_repository.dart';
+import 'package:intl/intl.dart';
 
-class Message {
-  final String text;
-  final bool isMe;
-  final String time;
-  final bool isRead;
-  final bool isTyping;
-
-  const Message({
-    required this.text,
-    required this.isMe,
-    required this.time,
-    this.isRead = false,
-    this.isTyping = false,
-  });
-}
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final String chatId;
+  final String otherUserName;
+  final String otherUserAvatar;
+  final String propertyTitle;
+  final String propertyImage;
+
+  const ChatScreen({
+    super.key,
+    required this.chatId,
+    required this.otherUserName,
+    required this.otherUserAvatar,
+    required this.propertyTitle,
+    required this.propertyImage,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -29,20 +31,9 @@ class _ChatScreenState extends State<ChatScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<Message> messages = [
-    Message(
-      text:
-          'Hi! Looking forward to hosting you. What time do you expect to arrive?',
-      isMe: false,
-      time: '10:42 AM',
-    ),
-    Message(
-      text: 'Hi Andrei, thanks! We should be there around 14:00.',
-      isMe: true,
-      time: '10:45 AM',
-      isRead: true,
-    ),
-  ];
+  final _chatRepo = ChatRepository();
+  late String _currentUserId;
+
   final List<String> quickReplies = [
     'Check-in time?',
     'WiFi Password',
@@ -57,6 +48,8 @@ class _ChatScreenState extends State<ChatScreen>
   @override
   void initState() {
     super.initState();
+    _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
     _typingAnimationController = AnimationController(
       duration: const Duration(milliseconds: 1400),
       vsync: this,
@@ -116,9 +109,9 @@ class _ChatScreenState extends State<ChatScreen>
                           height: 40,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            image: const DecorationImage(
+                            image: DecorationImage(
                               image: NetworkImage(
-                                'https://lh3.googleusercontent.com/aida-public/AB6AXuCBpameCyzkUPvQSSEn0v_d6dZLX4VcW8QhBNoEkEZuVMVf0XDBlaShLwVPFSAZNCuSP6VGpl5n-jysc89pJ9vk5tXxOq_--6BjdATRLrb3PtzIyZF9UWV8wYFpPoTAEiGWpBG9yfwKPj7C2EyhNLWzKDoYDfm6DkcOPCxjtyDV-URZuLzr-qCJmKty8L0cW7RpYjnY8N5CpoAosek4_fRXQkf9AAa8XohNCKu17AECLvHyly-vZQta2qSo9qz96GQG4vUh7Yo90XY',
+                                widget.otherUserAvatar.isNotEmpty ? widget.otherUserAvatar : 'https://placehold.co/100x100/png',
                               ),
                               fit: BoxFit.cover,
                             ),
@@ -152,7 +145,7 @@ class _ChatScreenState extends State<ChatScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Andrei',
+                            widget.otherUserName,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -202,9 +195,9 @@ class _ChatScreenState extends State<ChatScreen>
                       height: 40,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        image: const DecorationImage(
+                        image: DecorationImage(
                           image: NetworkImage(
-                            'https://lh3.googleusercontent.com/aida-public/AB6AXuD_v7iI74ZfEtDLziDe1GQv4FAT10Do2Io0EREAeBZhXaH0ctlRTBbhaZxukBuK0AUhsMpymfA4dGVdaS0glG4v002vw5cJgpNnjCptfMl9yvCMxSKN8iWbIb9d7NYDLWood7_HT6jiDrDV5OHDOEsYWaC6lVYUBKBHDSkKU86lVO-Mus3RCQRvhFOzBONh1ni9N4wvmKS7asoegS2wx4NEjKXatF-BEXRpeTVbUpFNUQd0EmbOXPupLBT5_EDyVzstiCS4GCFmBKk',
+                            widget.propertyImage.isNotEmpty ? widget.propertyImage : 'https://placehold.co/100x100/png',
                           ),
                           fit: BoxFit.cover,
                         ),
@@ -216,7 +209,7 @@ class _ChatScreenState extends State<ChatScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Apartment in Brașov',
+                            widget.propertyTitle,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -397,8 +390,24 @@ class _ChatScreenState extends State<ChatScreen>
                           ),
 
                           // Messages
-                          ...messages.map(
-                            (message) => _buildMessageBubble(message, c),
+                          StreamBuilder<List<model.Message>>(
+                            stream: _chatRepo.getChatMessages(widget.chatId),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return const Center(child: CircularProgressIndicator());
+                              }
+                              final messages = snapshot.data!;
+                              
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (_scrollController.hasClients) {
+                                  _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+                                }
+                              });
+
+                              return Column(
+                                children: messages.map((m) => _buildMessageBubble(m, c)).toList(),
+                              );
+                            },
                           ),
 
                           // Typing Indicator
@@ -435,16 +444,7 @@ class _ChatScreenState extends State<ChatScreen>
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
-                          messages.add(
-                            Message(
-                              text: quickReplies[index],
-                              isMe: true,
-                              time: 'Now',
-                              isRead: false,
-                            ),
-                          );
-                          _messageController.clear();
-                          _scrollToBottom();
+                          _messageController.text = quickReplies[index];
                         });
                       },
                       child: Container(
@@ -591,37 +591,14 @@ class _ChatScreenState extends State<ChatScreen>
     );
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     if (_messageController.text.isNotEmpty) {
+      final text = _messageController.text;
       setState(() {
-        messages.add(
-          Message(
-            text: _messageController.text,
-            isMe: true,
-            time: 'Now',
-            isRead: false,
-          ),
-        );
         _messageController.clear();
-        isTyping = true;
-        _scrollToBottom();
-
-        // Simulate typing response
-        Future.delayed(const Duration(seconds: 2), () {
-          setState(() {
-            isTyping = false;
-            messages.add(
-              Message(
-                text:
-                    'Great! See you at 14:00. The keys will be at the reception.',
-                isMe: false,
-                time: 'Now',
-              ),
-            );
-            _scrollToBottom();
-          });
-        });
       });
+      await _chatRepo.sendMessage(widget.chatId, _currentUserId, text);
+      _scrollToBottom();
     }
   }
 
@@ -637,26 +614,29 @@ class _ChatScreenState extends State<ChatScreen>
     });
   }
 
-  Widget _buildMessageBubble(Message message, AppColorScheme c) {
+  Widget _buildMessageBubble(model.Message message, AppColorScheme c) {
+    final isMe = message.senderId == _currentUserId;
+    final timeFormat = DateFormat.jm().format(message.timestamp);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: message.isMe
+        mainAxisAlignment: isMe
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: [
-          if (!message.isMe)
+          if (!isMe)
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Container(
                 width: 32,
                 height: 32,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
                     image: NetworkImage(
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuBqg9c-cOoBSu4rfX2yN-02ZH70rYjEz2eqiogWAMmx1YunziQyy0L18Hf_qdqEnMeuP5g3RsN6yJtj3-3Nt2ENEpAqqoDQqd5BVnH7l3ynB1sRYBK7m5Of9_QQKzX83EZApcq01AswYLqm4mWYQOeTemxIrLJqig5rSSCtuA2_Q1eOG725UHn6iC7q4cSkJv2Jt4YeP5KIg15oSHgDRw6vT0S1RuabeuzcPMgFo4lH-JyZIctn7p0TRpjIq5NEfKAYFrMvvzRHECM',
+                      widget.otherUserAvatar.isNotEmpty ? widget.otherUserAvatar : 'https://placehold.co/100x100/png',
                     ),
                     fit: BoxFit.cover,
                   ),
@@ -666,7 +646,7 @@ class _ChatScreenState extends State<ChatScreen>
 
           Flexible(
             child: Column(
-              crossAxisAlignment: message.isMe
+              crossAxisAlignment: isMe
                   ? CrossAxisAlignment.end
                   : CrossAxisAlignment.start,
               children: [
@@ -676,16 +656,16 @@ class _ChatScreenState extends State<ChatScreen>
                   ),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: message.isMe
+                    color: isMe
                         ? AppColors.primaryBlue
                         : (c.card),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(16),
                       topRight: const Radius.circular(16),
-                      bottomLeft: message.isMe
+                      bottomLeft: isMe
                           ? const Radius.circular(16)
                           : const Radius.circular(4),
-                      bottomRight: message.isMe
+                      bottomRight: isMe
                           ? const Radius.circular(4)
                           : const Radius.circular(16),
                     ),
@@ -694,7 +674,7 @@ class _ChatScreenState extends State<ChatScreen>
                       width: 1,
                     ),
                     boxShadow: [
-                      if (message.isMe)
+                      if (isMe)
                         BoxShadow(
                           color: AppColors.primaryBlue.withValues(alpha: 0.2),
                           blurRadius: 4,
@@ -703,10 +683,10 @@ class _ChatScreenState extends State<ChatScreen>
                     ],
                   ),
                   child: Text(
-                    message.text,
+                    message.content,
                     style: TextStyle(
                       fontSize: 14,
-                      color: message.isMe ? AppColors.white : c.textMain,
+                      color: isMe ? AppColors.white : c.textMain,
                       height: 1.4,
                     ),
                   ),
@@ -714,22 +694,22 @@ class _ChatScreenState extends State<ChatScreen>
                 const SizedBox(height: 4),
                 Padding(
                   padding: EdgeInsets.only(
-                    left: message.isMe ? 0 : 4,
-                    right: message.isMe ? 4 : 0,
+                    left: isMe ? 0 : 4,
+                    right: isMe ? 4 : 0,
                   ),
                   child: Row(
-                    mainAxisAlignment: message.isMe
+                    mainAxisAlignment: isMe
                         ? MainAxisAlignment.end
                         : MainAxisAlignment.start,
                     children: [
                       Text(
-                        message.time,
+                        timeFormat,
                         style: TextStyle(
                           fontSize: 10,
                           color: const Color(0xFF9CA3AF),
                         ),
                       ),
-                      if (message.isMe && message.isRead)
+                      if (isMe && message.isRead)
                         const Padding(
                           padding: EdgeInsets.only(left: 4),
                           child: Icon(

@@ -14,6 +14,7 @@ import 'package:pfe/features/home/data/repositories/property_repository.dart';
 import 'package:pfe/features/home/presentation/bloc/home_bloc.dart';
 import 'package:pfe/features/home/presentation/bloc/home_event.dart';
 import 'package:pfe/features/home/presentation/bloc/home_state.dart';
+import 'package:pfe/features/home/presentation/map/map_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -35,6 +36,8 @@ class HomeScreenView extends StatefulWidget {
 }
 
 class _HomeScreenViewState extends State<HomeScreenView> {
+  int _selectedFilterIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
@@ -57,26 +60,32 @@ class _HomeScreenViewState extends State<HomeScreenView> {
               const SizedBox(height: 20),
 
               // 🔹 FILTER BUTTONS
-              Row(
-                children: [
-                  Filterbutton(
-                    active: true,
-                    text: AppStrings.navExplore,
-                    icon: Icons.search,
-                  ),
-                  const SizedBox(width: 10),
-                  Filterbutton(
-                    active: false,
-                    text: AppStrings.filterNearMetro,
-                    icon: Icons.subway,
-                  ),
-                  const SizedBox(width: 10),
-                  Filterbutton(
-                    active: false,
-                    text: AppStrings.filterColiving,
-                    icon: Icons.people_outline,
-                  ),
-                ],
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    Filterbutton(
+                      active: _selectedFilterIndex == 0,
+                      text: AppStrings.navExplore,
+                      icon: Icons.search,
+                      onTap: () => setState(() => _selectedFilterIndex = 0),
+                    ),
+                    const SizedBox(width: 10),
+                    Filterbutton(
+                      active: _selectedFilterIndex == 1,
+                      text: AppStrings.filterNearMetro,
+                      icon: Icons.subway,
+                      onTap: () => setState(() => _selectedFilterIndex = 1),
+                    ),
+                    const SizedBox(width: 10),
+                    Filterbutton(
+                      active: _selectedFilterIndex == 2,
+                      text: AppStrings.filterColiving,
+                      icon: Icons.people_outline,
+                      onTap: () => setState(() => _selectedFilterIndex = 2),
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 24),
@@ -99,57 +108,105 @@ class _HomeScreenViewState extends State<HomeScreenView> {
                       ),
                     );
                   } else if (state is HomeLoaded) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 🔹 FEATURED LISTINGS
-                        _sectionHeader(AppStrings.featuredListings),
-                        const SizedBox(height: 12),
+                    if (_selectedFilterIndex == 1) {
+                      // 🔹 NEAR METRO FILTER
+                      final nearMetro = state.allProperties.where((p) => 
+                        p.subtitle.toLowerCase().contains('unirii') || 
+                        p.subtitle.toLowerCase().contains('victoriei') ||
+                        p.title.toLowerCase().contains('metro') ||
+                        p.description.toLowerCase().contains('metro')
+                      ).toList();
+                      
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _sectionHeader(AppStrings.filterNearMetro),
+                          const SizedBox(height: 12),
+                          if (nearMetro.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Text('No properties near metro available.'),
+                            )
+                          else
+                            ...nearMetro.map((prop) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: ListCardHome(property: prop),
+                                )),
+                        ],
+                      );
+                    } else if (_selectedFilterIndex == 2) {
+                      // 🔹 CO-LIVING FILTER
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _sectionHeader(AppStrings.bestForColiving),
+                          const SizedBox(height: 12),
+                          if (state.colivingProperties.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Text('No co-living listings available.'),
+                            )
+                          else
+                            ...state.colivingProperties.map((prop) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: ListCardHome(property: prop),
+                                )),
+                        ],
+                      );
+                    } else {
+                      // 🔹 DEFAULT: EXPLORE
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 🔹 FEATURED LISTINGS
+                          _sectionHeader(AppStrings.featuredListings),
+                          const SizedBox(height: 12),
 
-                        if (state.featuredProperties.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Text('No featured listings available.'),
-                          )
-                        else
-                          SizedBox(
-                            height: 210,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: state.featuredProperties.length,
-                              itemBuilder: (context, index) {
-                                final prop = state.featuredProperties[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 12),
-                                  child: CardHome(property: prop),
-                                );
-                              },
+                          if (state.featuredProperties.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Text('No featured listings available.'),
+                            )
+                          else
+                            SizedBox(
+                              height: 210,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: state.featuredProperties.length,
+                                itemBuilder: (context, index) {
+                                  final prop = state.featuredProperties[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 12),
+                                    child: CardHome(property: prop),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
 
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-                        // 🔹 BUDGET CARD
-                        BudgetCardHome(),
+                          // 🔹 BUDGET CARD
+                          BudgetCardHome(properties: state.allProperties),
 
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-                        // 🔹 CO-LIVING
-                        _sectionHeader(AppStrings.bestForColiving),
-                        const SizedBox(height: 12),
+                          // 🔹 CO-LIVING
+                          _sectionHeader(AppStrings.bestForColiving),
+                          const SizedBox(height: 12),
 
-                        if (state.colivingProperties.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Text('No co-living listings available.'),
-                          )
-                        else
-                          ...state.colivingProperties.map((prop) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: ListCardHome(property: prop),
-                              )),
-                      ],
-                    );
+                          if (state.colivingProperties.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Text('No co-living listings available.'),
+                            )
+                          else
+                            ...state.colivingProperties.map((prop) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: ListCardHome(property: prop),
+                                )),
+                        ],
+                      );
+                    }
                   }
 
                   return const SizedBox.shrink();
@@ -163,11 +220,22 @@ class _HomeScreenViewState extends State<HomeScreenView> {
       ),
 
       // 🔹 MAP BUTTON
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.white,
-        onPressed: () {},
-        icon: const Icon(Icons.map),
-        label: Text(AppStrings.mapButton),
+      floatingActionButton: BlocBuilder<HomeBloc, HomeState>(
+        builder: (context, state) {
+          if (state is HomeLoaded) {
+            return FloatingActionButton.extended(
+              backgroundColor: Colors.white,
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => MapScreen(properties: state.allProperties)),
+                );
+              },
+              icon: const Icon(Icons.map),
+              label: Text(AppStrings.mapButton),
+            );
+          }
+          return const SizedBox.shrink();
+        },
       ),
     );
   }

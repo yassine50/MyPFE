@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pfe/core/theme/app_theme.dart';
+import 'package:pfe/core/models/property_model.dart';
+
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:pfe/features/chat/data/repositories/chat_repository.dart';
 
 class SendRequest extends StatefulWidget {
-  const SendRequest({super.key});
+  final PropertyModel property;
+  const SendRequest({super.key, required this.property});
 
   @override
   State<SendRequest> createState() => _RequestToRentPageState();
@@ -87,29 +93,70 @@ class _RequestToRentPageState extends State<SendRequest> {
     setState(() {});
   }
 
-  void _sendRequest() {
-    // Show loading or process request
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Request sent successfully!'),
-        backgroundColor: context.appColors.primary,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+  Future<void> _sendRequest(double total) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+      final ref = FirebaseDatabase.instance.ref('bookings').push();
 
-    // Navigate back after a delay
-    Future.delayed(const Duration(seconds: 2), () {
+      await ref.set({
+        'propertyId': widget.property.id,
+        'guestId': uid,
+        'moveInDate': _moveInDate.toIso8601String(),
+        'moveOutDate': _moveOutDate.toIso8601String(),
+        'guests': _guestCount,
+        'message': _messageController.text,
+        'totalPrice': total,
+        'status': 'pending',
+        'createdAt': ServerValue.timestamp,
+      });
+
+      // Create a chat and send initial message
+      if (_messageController.text.isNotEmpty) {
+        final chatRepo = ChatRepository();
+        final chatId = await chatRepo.createOrGetChat(
+          widget.property.id,
+          widget.property.hostId,
+          uid,
+        );
+        await chatRepo.sendMessage(chatId, uid, _messageController.text);
+      }
+
       if (!mounted) return;
-      Navigator.pop(context);
-    });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Request sent successfully!'),
+          backgroundColor: context.appColors.primary,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      Future.delayed(const Duration(seconds: 2), () {
+        if (!mounted) return;
+        Navigator.pop(context);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to send request: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
-    final pricePerMonth = 450.0;
+    final priceStr = widget.property.price.replaceAll(RegExp(r'[^0-9]'), '');
+    final pricePerMonth = double.tryParse(priceStr) ?? 450.0;
     final serviceFee = 25.0;
-    final total = pricePerMonth + serviceFee;
+    
+    int days = _moveOutDate.difference(_moveInDate).inDays;
+    if (days <= 0) days = 1;
+    double months = days / 30.0;
+    double rentTotal = pricePerMonth * months;
+    double total = rentTotal + serviceFee;
 
     return Scaffold(
       backgroundColor: c.background,
@@ -139,6 +186,8 @@ class _RequestToRentPageState extends State<SendRequest> {
                     _buildPriceBreakdown(
                       c,
                       pricePerMonth,
+                      months,
+                      rentTotal,
                       serviceFee,
                       total,
                     ),
@@ -148,7 +197,7 @@ class _RequestToRentPageState extends State<SendRequest> {
             ),
 
             // Sticky Footer
-            _buildFooter(c),
+            _buildFooter(c, total),
           ],
         ),
       ),
@@ -233,7 +282,7 @@ class _RequestToRentPageState extends State<SendRequest> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Apartment',
+                      widget.property.roomType,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -243,7 +292,7 @@ class _RequestToRentPageState extends State<SendRequest> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Modern Studio in Cluj-Napoca',
+                      widget.property.title,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -270,9 +319,9 @@ class _RequestToRentPageState extends State<SendRequest> {
                 height: 96,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  image: const DecorationImage(
+                  image: DecorationImage(
                     image: NetworkImage(
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuCexpN7A8ZBLqPcH9mG2V9NXSGIIpFHr2lNetdv64T_MkiXGaHu5aKCt0D8D03lFcSVqxUOvowpjSO1TzONCSVgx3CWMdDfftc-JUFgzNIAKmsd6ozilVXG57f9A-ne6rInjJK3V4nMUQcNIsiywcbBhjH6-HQOJ6tgnkEURWPyDV8dDWV48SBa7oG4oyKaDGDW-4m8M4ONg5EvGAtZJqhzb_80nMXgl8prSkGjf7z5AzRb9OOskJt4xrk8_im3GSMZXEJ91Cwm9-c',
+                      widget.property.images.isNotEmpty ? widget.property.images.first : 'https://placehold.co/400x400/png',
                     ),
                     fit: BoxFit.cover,
                   ),
@@ -629,6 +678,8 @@ class _RequestToRentPageState extends State<SendRequest> {
   Widget _buildPriceBreakdown(
     AppColorScheme c,
     double price,
+    double months,
+    double rentTotal,
     double serviceFee,
     double total,
   ) {
@@ -655,14 +706,14 @@ class _RequestToRentPageState extends State<SendRequest> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${price.toInt()}€ x 1 month',
+                  '${price.toInt()}€ x ${months.toStringAsFixed(1)} months',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     color: c.textSecondary,
                   ),
                 ),
                 Text(
-                  '${price.toInt()}€',
+                  '${rentTotal.toInt()}€',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     color: c.textSecondary,
@@ -729,7 +780,7 @@ class _RequestToRentPageState extends State<SendRequest> {
   }
 
   // Sticky Footer
-  Widget _buildFooter(AppColorScheme c) {
+  Widget _buildFooter(AppColorScheme c, double total) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -769,7 +820,7 @@ class _RequestToRentPageState extends State<SendRequest> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              onPressed: _sendRequest,
+              onPressed: () => _sendRequest(total),
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.primary,
                 foregroundColor: Colors.white,

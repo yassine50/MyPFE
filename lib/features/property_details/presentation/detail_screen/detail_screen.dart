@@ -147,7 +147,7 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
 
             // Bottom action bar
-            ButtomActionButton(price: property.price),
+            ButtomActionButton(property: property),
           ],
         ),
       ),

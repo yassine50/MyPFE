@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pfe/features/booking/presentation/send_request/send_request.dart';
+import 'package:pfe/core/models/property_model.dart';
 
 class ButtomActionButton extends StatelessWidget {
-  final String price;
-  const ButtomActionButton({super.key, required this.price});
+  final PropertyModel property;
+  const ButtomActionButton({super.key, required this.property});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +30,7 @@ class ButtomActionButton extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  price,
+                  property.price,
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const Text(
@@ -43,7 +44,7 @@ class ButtomActionButton extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const SendRequest()),
+                  MaterialPageRoute(builder: (context) => SendRequest(property: property)),
                 );
               },
               style: ElevatedButton.styleFrom(

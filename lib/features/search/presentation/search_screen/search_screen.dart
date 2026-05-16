@@ -6,7 +6,8 @@ import 'package:pfe/core/widgets/header/header.dart';
 import 'package:pfe/core/models/property_model.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final List<PropertyModel>? properties;
+  const SearchScreen({super.key, this.properties});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -37,7 +38,15 @@ class _SearchScreenState extends State<SearchScreen> {
 
             /// 🔹 SCROLLABLE LIST
             Expanded(
-              child: ListView(
+              child: widget.properties != null 
+                ? (widget.properties!.isEmpty 
+                    ? const Center(child: Text('No properties found.'))
+                    : ListView(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        children: widget.properties!.map((p) => ListCardHome(property: p)).toList(),
+                      )
+                  )
+                : ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
                   ListCardHome(

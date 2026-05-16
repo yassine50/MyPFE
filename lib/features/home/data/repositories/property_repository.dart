@@ -22,6 +22,17 @@ class PropertyRepository {
     }
   }
 
+  Future<void> addProperty(PropertyModel property) async {
+    try {
+      final newRef = _database.ref('properties').push();
+      // Use the newly generated key as the ID for the property.
+      // PropertyModel.toJson() does not include the id.
+      await newRef.set(property.toJson());
+    } catch (e) {
+      throw Exception('Failed to add property: $e');
+    }
+  }
+
   // Stream version for real-time updates if needed
   Stream<List<PropertyModel>> get propertiesStream {
     return _database.ref('properties').onValue.map((event) {

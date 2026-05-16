@@ -10,6 +10,8 @@ class PropertyModel {
   final double longitude;
   final bool isFeatured;
   final bool isColiving;
+  final String hostId;
+  final bool isActive;
   
   // New deep fields
   final String description;
@@ -19,6 +21,7 @@ class PropertyModel {
   final String residentDemographics;
   final List<Map<String, dynamic>> reviews;
   final List<String> residentAvatars;
+  final List<String> houseRules;
 
   PropertyModel({
     required this.id,
@@ -32,6 +35,8 @@ class PropertyModel {
     this.longitude = 0.0,
     this.isFeatured = false,
     this.isColiving = false,
+    this.hostId = '',
+    this.isActive = true,
     this.description = '',
     this.moveInDate = '',
     this.roomType = '',
@@ -39,6 +44,7 @@ class PropertyModel {
     this.residentDemographics = '',
     this.reviews = const [],
     this.residentAvatars = const [],
+    this.houseRules = const [],
   });
 
   factory PropertyModel.fromJson(Map<dynamic, dynamic> json, String id) {
@@ -70,6 +76,8 @@ class PropertyModel {
       longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : 0.0,
       isFeatured: json['isFeatured'] ?? false,
       isColiving: json['isColiving'] ?? false,
+      hostId: json['hostId'] ?? '',
+      isActive: json['isActive'] ?? true,
       
       description: json['description'] ?? '',
       moveInDate: json['moveInDate'] ?? '',
@@ -78,6 +86,7 @@ class PropertyModel {
       residentDemographics: json['residentDemographics'] ?? '',
       reviews: parseReviews(json['reviews']),
       residentAvatars: parseStringList(json['residentAvatars'], []),
+      houseRules: parseStringList(json['houseRules'], []),
     );
   }
 
@@ -93,6 +102,8 @@ class PropertyModel {
       'longitude': longitude,
       'isFeatured': isFeatured,
       'isColiving': isColiving,
+      'hostId': hostId,
+      'isActive': isActive,
       'description': description,
       'moveInDate': moveInDate,
       'roomType': roomType,
@@ -100,6 +111,7 @@ class PropertyModel {
       'residentDemographics': residentDemographics,
       'reviews': reviews,
       'residentAvatars': residentAvatars,
+      'houseRules': houseRules,
     };
   }
 }
