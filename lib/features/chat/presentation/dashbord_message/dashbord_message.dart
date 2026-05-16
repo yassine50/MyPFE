@@ -264,6 +264,7 @@ class _ConversationItemState extends State<_ConversationItem> {
   String _otherUserAvatar = '';
   String _propertyTitle = 'Property';
   String _propertyImage = '';
+  int _unreadCount = 0;
 
   @override
   void initState() {
@@ -307,6 +308,27 @@ class _ConversationItemState extends State<_ConversationItem> {
         });
       }
     } catch (_) {}
+
+    // Count unread messages from the other user
+    try {
+      final otherUserId = widget.conversation.hostId == widget.currentUserId
+          ? widget.conversation.guestId
+          : widget.conversation.hostId;
+      final msgsSnapshot = await FirebaseDatabase.instance
+          .ref('chats/${widget.conversation.id}/messages')
+          .get();
+      if (msgsSnapshot.exists) {
+        final data = msgsSnapshot.value as Map<dynamic, dynamic>;
+        int count = 0;
+        data.forEach((key, value) {
+          final msg = value as Map<dynamic, dynamic>;
+          if (msg['senderId'] == otherUserId && msg['isRead'] == false) {
+            count++;
+          }
+        });
+        setState(() => _unreadCount = count);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -314,9 +336,8 @@ class _ConversationItemState extends State<_ConversationItem> {
     // For formatting timestamp
     final timeFormat = DateFormat.jm().format(widget.conversation.updatedAt);
     
-    // Check if unread logic needs to be implemented. For now set to false or compute from messages if nested.
-    // To properly do unread, we'd need to listen to messages or have an unreadCount field.
-    final bool isUnread = false; 
+    // isUnread: track whether conversation has unread messages (based on unreadCount)
+    final bool isUnread = _unreadCount > 0;
 
     return Container(
       decoration: BoxDecoration(
@@ -333,19 +354,27 @@ class _ConversationItemState extends State<_ConversationItem> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (context) => ChatScreen(
-                  chatId: widget.conversation.id,
-                  otherUserName: _otherUserName,
-                  otherUserAvatar: _otherUserAvatar,
-                  propertyTitle: _propertyTitle,
-                  propertyImage: _propertyImage,
+          onTap: () async {
+            // Mark messages as read when opening the chat
+            if (_unreadCount > 0) {
+              final chatRepo = ChatRepository();
+              await chatRepo.markMessagesAsRead(widget.conversation.id, widget.currentUserId);
+              setState(() => _unreadCount = 0);
+            }
+            if (context.mounted) {
+              Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (context) => ChatScreen(
+                    chatId: widget.conversation.id,
+                    otherUserName: _otherUserName,
+                    otherUserAvatar: _otherUserAvatar,
+                    propertyTitle: _propertyTitle,
+                    propertyImage: _propertyImage,
+                  ),
                 ),
-              ),
-            );
+              );
+            }
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -492,6 +521,24 @@ class _ConversationItemState extends State<_ConversationItem> {
                     ],
                   ),
                 ),
+                // Unread badge
+                if (isUnread)
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF136DEC),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$_unreadCount',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

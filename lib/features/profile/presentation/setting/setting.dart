@@ -4,7 +4,17 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/features/profile/presentation/profile/profile.dart';
 import 'package:pfe/features/auth/data/services/auth_service.dart';
-import 'package:pfe/features/auth/presentation/login/login.dart';
+import 'package:pfe/features/onboarding/presentation/splash_screen/splash_screen.dart';
+import 'package:pfe/features/profile/presentation/setting/language_page.dart';
+import 'package:pfe/features/profile/presentation/setting/currency_page.dart';
+import 'package:pfe/features/profile/presentation/setting/change_password_page.dart';
+import 'package:pfe/features/profile/presentation/setting/payment_methods_page.dart';
+import 'package:pfe/features/profile/presentation/setting/billing_history_page.dart';
+import 'package:pfe/features/profile/presentation/setting/help_center_page.dart';
+import 'package:pfe/features/profile/presentation/setting/terms_of_service_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:pfe/core/models/user_model.dart' as app_user;
 
 class Setting extends StatefulWidget {
   const Setting({super.key});
@@ -18,9 +28,13 @@ class _SettingsPageState extends State<Setting> {
   bool _emailUpdates = false;
   bool _faceIDLogin = true;
 
+  String _selectedLanguage = 'English';
+  String _selectedCurrency = 'EUR';
+
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
       backgroundColor: c.background,
@@ -29,28 +43,25 @@ class _SettingsPageState extends State<Setting> {
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              // Top App Bar
               _buildTopAppBar(c),
-
-              // Profile Section
-              _buildProfileSection(c),
-
-              // General Section
+              if (uid != null)
+                StreamBuilder<DatabaseEvent>(
+                  stream: FirebaseDatabase.instance.ref('users/$uid').onValue,
+                  builder: (context, snapshot) {
+                    app_user.User? user;
+                    if (snapshot.hasData && snapshot.data!.snapshot.exists) {
+                      user = app_user.User.fromJson(Map<String, dynamic>.from(snapshot.data!.snapshot.value as Map));
+                    }
+                    return _buildProfileSection(c, user);
+                  },
+                )
+              else
+                _buildProfileSection(c, null),
               _buildGeneralSection(c),
-
-              // Notifications Section
               _buildNotificationsSection(c),
-
-              // Payments & Subscription Section
               _buildPaymentsSection(c),
-
-              // Privacy & Security Section
               _buildPrivacySection(c),
-
-              // Support Section
               _buildSupportSection(c),
-
-              // Footer
               _buildFooter(c),
             ],
           ),
@@ -59,7 +70,7 @@ class _SettingsPageState extends State<Setting> {
     );
   }
 
-  // Top App Bar
+  // ─── Top App Bar ───────────────────────────────────────────────────────────
   Widget _buildTopAppBar(AppColorScheme c) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -70,103 +81,69 @@ class _SettingsPageState extends State<Setting> {
               AppStrings.settingsTitle,
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: c.textMain,
-                height: 1.2,
-                letterSpacing: -0.015,
+                fontSize: 18, fontWeight: FontWeight.bold, color: c.textMain, height: 1.2, letterSpacing: -0.015,
               ),
             ),
           ),
-          const SizedBox(width: 40), // For balance
+          const SizedBox(width: 40),
         ],
       ),
     );
   }
 
-  // Profile Section
-  Widget _buildProfileSection(AppColorScheme c) {
+  // ─── Profile Section ───────────────────────────────────────────────────────
+  Widget _buildProfileSection(AppColorScheme c, app_user.User? user) {
+    final name = user?.fullName.isNotEmpty == true ? user!.fullName : 'Your Name';
+    final photoUrl = user?.profileImage ?? '';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Container(
         decoration: BoxDecoration(
           color: c.card,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: c.border,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          border: Border.all(color: c.border),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))],
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () {
-              // Handle profile tap
-              Navigator.push(
-                context,
-                MaterialPageRoute<void>(builder: (context) => const Profile()),
-              );
-            },
+            onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const Profile())),
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  // Profile Image
+                  // Avatar
                   Container(
-                    width: 64,
-                    height: 64,
+                    width: 64, height: 64,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(32),
-                      image: const DecorationImage(
-                        image: NetworkImage(
-                          'https://lh3.googleusercontent.com/aida-public/AB6AXuDeimHG6ybhdO74f5hEmh30HrvaUYsrMPztDpWKlfi-MkGRj_YkQH1Bg4Nx2M_lkt6h1OWJ8L9FBCSJYZtDhNISystwQNPMMcv3i-PHIf0tjdLhtuclLfyoIXjpSM0IZ5_NcC9Nu-4WMYuuZV3DvKc4q5Tu3c-zIfkBKHhf1a1kJpYmSqQ3TGomH_ubcpSueGIb0WP98jekJG0YeGW4lhoRpSghizds4tMLI6Cpm9rfHcHjkRdnjQNXWdSIXVq5kXThj2werSNufkc',
-                        ),
-                        fit: BoxFit.cover,
-                      ),
+                      color: c.statsBg,
+                      image: photoUrl.isNotEmpty
+                          ? DecorationImage(image: NetworkImage(photoUrl), fit: BoxFit.cover)
+                          : null,
+                      border: Border.all(color: c.border),
                     ),
+                    child: photoUrl.isEmpty
+                        ? Icon(Icons.person, size: 32, color: c.textSecondary)
+                        : null,
                   ),
                   const SizedBox(width: 16),
-                  // Name and Edit
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Alexandru Popescu',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: c.textMain,
-                            height: 1.2,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        Text(name,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: c.textMain, height: 1.2),
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 4),
-                        Text(
-                          AppStrings.editProfile,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: c.primary,
-                          ),
-                        ),
+                        Text(AppStrings.editProfile,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w500, color: c.primary)),
                       ],
                     ),
                   ),
-                  // Chevron
-                  Icon(
-                    Icons.chevron_right,
-                    color: c.textSecondary,
-                    size: 24,
-                  ),
+                  Icon(Icons.chevron_right, color: c.textSecondary, size: 24),
                 ],
               ),
             ),
@@ -176,405 +153,191 @@ class _SettingsPageState extends State<Setting> {
     );
   }
 
-  // General Section
+  // ─── General Section ───────────────────────────────────────────────────────
   Widget _buildGeneralSection(AppColorScheme c) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              AppStrings.sectionGeneral,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: c.textSecondary,
-                letterSpacing: 1,
-              ),
-            ),
-          ),
-          // Section Content
-          Container(
-            decoration: BoxDecoration(
-              color: c.card,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: c.border,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // Language
-                _buildSettingItem(
-                  c: c,
-                  icon: Icons.language,
-                  title: AppStrings.language,
-                  value: 'English',
-                  onTap: () {
-                    // Handle language tap
-                  },
-                  showDivider: true,
-                ),
-                // Currency
-                _buildSettingItem(
-                  c: c,
-                  icon: Icons.currency_exchange,
-                  title: AppStrings.currency,
-                  value: 'RON',
-                  onTap: () {
-                    // Handle currency tap
-                  },
-                  showDivider: false,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return _sectionWrapper(
+      label: AppStrings.sectionGeneral,
+      c: c,
+      children: [
+        _buildSettingItem(
+          c: c, icon: Icons.language, title: AppStrings.language, value: _selectedLanguage,
+          onTap: () async {
+            await Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const LanguagePage()));
+            // In a real app, read the result back; for now just label stays
+          },
+          showDivider: true,
+        ),
+        _buildSettingItem(
+          c: c, icon: Icons.currency_exchange, title: AppStrings.currency, value: _selectedCurrency,
+          onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const CurrencyPage())),
+          showDivider: false,
+        ),
+      ],
     );
   }
 
-  // Notifications Section
+  // ─── Notifications Section ─────────────────────────────────────────────────
   Widget _buildNotificationsSection(AppColorScheme c) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              AppStrings.sectionNotifications,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: c.textSecondary,
-                letterSpacing: 1,
-              ),
-            ),
-          ),
-          // Section Content
-          Container(
-            decoration: BoxDecoration(
-              color: c.card,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: c.border,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // Push Notifications
-                _buildToggleItem(
-                  c: c,
-                  icon: Icons.notifications,
-                  title: AppStrings.pushNotifications,
-                  value: _pushNotifications,
-                  onChanged: (value) {
-                    setState(() {
-                      _pushNotifications = value;
-                    });
-                  },
-                  showDivider: true,
-                ),
-                // Email Updates
-                _buildToggleItem(
-                  c: c,
-                  icon: Icons.mail,
-                  title: AppStrings.emailUpdates,
-                  value: _emailUpdates,
-                  onChanged: (value) {
-                    setState(() {
-                      _emailUpdates = value;
-                    });
-                  },
-                  showDivider: false,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return _sectionWrapper(
+      label: AppStrings.sectionNotifications,
+      c: c,
+      children: [
+        _buildToggleItem(
+          c: c, icon: Icons.notifications, title: AppStrings.pushNotifications,
+          value: _pushNotifications,
+          onChanged: (v) => setState(() => _pushNotifications = v),
+          showDivider: true,
+        ),
+        _buildToggleItem(
+          c: c, icon: Icons.mail, title: AppStrings.emailUpdates,
+          value: _emailUpdates,
+          onChanged: (v) => setState(() => _emailUpdates = v),
+          showDivider: false,
+        ),
+      ],
     );
   }
 
-  // Payments & Subscription Section
+  // ─── Payments Section ──────────────────────────────────────────────────────
   Widget _buildPaymentsSection(AppColorScheme c) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              AppStrings.sectionPayments,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: c.textSecondary,
-                letterSpacing: 1,
-              ),
-            ),
-          ),
-          // Section Content
-          Container(
-            decoration: BoxDecoration(
-              color: c.card,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: c.border,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // Payment Methods
-                _buildSettingItem(
-                  c: c,
-                  icon: Icons.credit_card,
-                  title: AppStrings.paymentMethods,
-                  value: '',
-                  onTap: () {
-                    // Handle payment methods tap
-                  },
-                  showDivider: true,
-                ),
-                // Billing History
-                _buildSettingItem(
-                  c: c,
-                  icon: Icons.receipt_long,
-                  title: AppStrings.billingHistory,
-                  value: '',
-                  onTap: () {
-                    // Handle billing history tap
-                  },
-                  showDivider: false,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return _sectionWrapper(
+      label: AppStrings.sectionPayments,
+      c: c,
+      children: [
+        _buildSettingItem(
+          c: c, icon: Icons.credit_card, title: AppStrings.paymentMethods, value: '',
+          onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const PaymentMethodsPage())),
+          showDivider: true,
+        ),
+        _buildSettingItem(
+          c: c, icon: Icons.receipt_long, title: AppStrings.billingHistory, value: '',
+          onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const BillingHistoryPage())),
+          showDivider: false,
+        ),
+      ],
     );
   }
 
-  // Privacy & Security Section
+  // ─── Privacy & Security Section ────────────────────────────────────────────
   Widget _buildPrivacySection(AppColorScheme c) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              AppStrings.sectionPrivacy,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: c.textSecondary,
-                letterSpacing: 1,
-              ),
-            ),
-          ),
-          // Section Content
-          Container(
-            decoration: BoxDecoration(
-              color: c.card,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: c.border,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // Change Password
-                _buildSettingItem(
-                  c: c,
-                  icon: Icons.lock,
-                  title: AppStrings.changePassword,
-                  value: '',
-                  onTap: () {
-                    // Handle change password tap
-                  },
-                  showDivider: true,
-                ),
-                // FaceID Login
-                _buildToggleItem(
-                  c: c,
-                  icon: Icons.face,
-                  title: AppStrings.faceIdLogin,
-                  value: _faceIDLogin,
-                  onChanged: (value) {
-                    setState(() {
-                      _faceIDLogin = value;
-                    });
-                  },
-                  showDivider: false,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return _sectionWrapper(
+      label: AppStrings.sectionPrivacy,
+      c: c,
+      children: [
+        _buildSettingItem(
+          c: c, icon: Icons.lock, title: AppStrings.changePassword, value: '',
+          onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const ChangePasswordPage())),
+          showDivider: true,
+        ),
+        _buildToggleItem(
+          c: c, icon: Icons.face, title: AppStrings.faceIdLogin,
+          value: _faceIDLogin,
+          onChanged: (v) => setState(() => _faceIDLogin = v),
+          showDivider: false,
+        ),
+      ],
     );
   }
 
-  // Support Section
+  // ─── Support Section ───────────────────────────────────────────────────────
   Widget _buildSupportSection(AppColorScheme c) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              AppStrings.sectionSupport,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: c.textSecondary,
-                letterSpacing: 1,
-              ),
-            ),
-          ),
-          // Section Content
-          Container(
-            decoration: BoxDecoration(
-              color: c.card,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: c.border,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // Help Center
-                _buildSettingItem(
-                  c: c,
-                  icon: Icons.help,
-                  title: AppStrings.helpCenter,
-                  value: '',
-                  onTap: () {
-                    // Handle help center tap
-                  },
-                  showDivider: true,
-                ),
-                // Terms of Service
-                _buildSettingItem(
-                  c: c,
-                  icon: Icons.description,
-                  title: AppStrings.termsOfService,
-                  value: '',
-                  onTap: () {
-                    // Handle terms tap
-                  },
-                  showDivider: false,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return _sectionWrapper(
+      label: AppStrings.sectionSupport,
+      c: c,
+      children: [
+        _buildSettingItem(
+          c: c, icon: Icons.help, title: AppStrings.helpCenter, value: '',
+          onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const HelpCenterPage())),
+          showDivider: true,
+        ),
+        _buildSettingItem(
+          c: c, icon: Icons.description, title: AppStrings.termsOfService, value: '',
+          onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const TermsOfServicePage())),
+          showDivider: false,
+        ),
+      ],
     );
   }
 
-  // Footer
+  // ─── Footer ────────────────────────────────────────────────────────────────
   Widget _buildFooter(AppColorScheme c) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
         children: [
-          // Log Out Button
           SizedBox(
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
               onPressed: () async {
-                await AuthService().signOut();
-                if (context.mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    (route) => false,
-                  );
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    backgroundColor: c.card,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    title: Text('Log Out', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: c.textMain)),
+                    content: Text('Are you sure you want to log out?', style: GoogleFonts.plusJakartaSans(color: c.textSecondary)),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: GoogleFonts.plusJakartaSans(color: c.textSecondary))),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: Text('Log Out', style: GoogleFonts.plusJakartaSans(color: c.red, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true && mounted) {
+                  await AuthService().signOut();
+                  if (mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const SplashScreen()),
+                      (route) => false,
+                    );
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.red.withValues(alpha: 0.1),
                 foregroundColor: c.red,
                 elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 side: BorderSide.none,
               ),
-              child: Text(
-                AppStrings.logOut,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Text(AppStrings.logOut, style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(height: 16),
-          // Version
-          Text(
-            'Version 2.4.1 (Build 2024)',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              color: c.textSecondary,
+          Text('Version 1.0.0 (Build 2026)', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: c.textSecondary)),
+        ],
+      ),
+    );
+  }
+
+  // ─── Shared Wrappers ───────────────────────────────────────────────────────
+  Widget _sectionWrapper({required String label, required AppColorScheme c, required List<Widget> children}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: c.textSecondary, letterSpacing: 1)),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: c.card,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: c.border),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))],
             ),
+            child: Column(children: children),
           ),
         ],
       ),
     );
   }
 
-  // Helper method for setting items with chevron
   Widget _buildSettingItem({
     required AppColorScheme c,
     required IconData icon,
@@ -595,58 +358,24 @@ class _SettingsPageState extends State<Setting> {
                 height: 60,
                 child: Row(
                   children: [
-                    // Icon Container
                     Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: c.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(icon, color: c.primary, size: 24),
+                      width: 40, height: 40,
+                      decoration: BoxDecoration(color: c.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                      child: Icon(icon, color: c.primary, size: 22),
                     ),
                     const SizedBox(width: 16),
-                    // Title
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: c.textMain,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    // Value and Chevron
-                    Row(
-                      children: [
-                        if (value.isNotEmpty)
-                          Text(
-                            value,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.normal,
-                              color: c.textSecondary,
-                            ),
-                          ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.chevron_right,
-                          color: c.textSecondary,
-                          size: 24,
-                        ),
-                      ],
-                    ),
+                    Expanded(child: Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w500, color: c.textMain), overflow: TextOverflow.ellipsis)),
+                    Row(children: [
+                      if (value.isNotEmpty)
+                        Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 14, color: c.textSecondary)),
+                      const SizedBox(width: 8),
+                      Icon(Icons.chevron_right, color: c.textSecondary, size: 24),
+                    ]),
                   ],
                 ),
               ),
               if (showDivider)
-                Container(
-                  height: 1,
-                  color: c.border,
-                  margin: const EdgeInsets.only(left: 56),
-                ),
+                Container(height: 1, color: c.border, margin: const EdgeInsets.only(left: 56)),
             ],
           ),
         ),
@@ -654,7 +383,6 @@ class _SettingsPageState extends State<Setting> {
     );
   }
 
-  // Helper method for toggle items
   Widget _buildToggleItem({
     required AppColorScheme c,
     required IconData icon,
@@ -671,60 +399,32 @@ class _SettingsPageState extends State<Setting> {
             height: 60,
             child: Row(
               children: [
-                // Icon Container
                 Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: c.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: c.primary, size: 24),
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(color: c.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                  child: Icon(icon, color: c.primary, size: 22),
                 ),
                 const SizedBox(width: 16),
-                // Title
-                Expanded(
-                  child: Text(
-                    title,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: c.textMain,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                // Custom Toggle Switch
+                Expanded(child: Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w500, color: c.textMain), overflow: TextOverflow.ellipsis)),
                 GestureDetector(
                   onTap: () => onChanged(!value),
-                  child: Container(
-                    width: 44,
-                    height: 24,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 44, height: 24,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      color: value
-                          ? c.primary
-                          : c.card.withValues(alpha: 0.2),
+                      color: value ? c.primary : c.border,
                     ),
                     padding: const EdgeInsets.all(2),
                     child: AnimatedAlign(
                       duration: const Duration(milliseconds: 200),
-                      alignment: value
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
+                      alignment: value ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
-                        width: 20,
-                        height: 20,
+                        width: 20, height: 20,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 2,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 2, offset: const Offset(0, 1))],
                         ),
                       ),
                     ),
@@ -733,12 +433,7 @@ class _SettingsPageState extends State<Setting> {
               ],
             ),
           ),
-          if (showDivider)
-            Container(
-              height: 1,
-              color: c.border,
-              margin: const EdgeInsets.only(left: 56),
-            ),
+          if (showDivider) Container(height: 1, color: c.border, margin: const EdgeInsets.only(left: 56)),
         ],
       ),
     );
