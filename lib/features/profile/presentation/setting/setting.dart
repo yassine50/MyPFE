@@ -31,41 +31,76 @@ class _SettingsPageState extends State<Setting> {
   String _selectedLanguage = 'English';
   String _selectedCurrency = 'EUR';
 
+  // Map language codes to display names for the value label
+  static const Map<String, String> _langNames = {
+    'en': 'English', 'fr': 'French', 'ro': 'Romanian', 'de': 'German',
+    'es': 'Spanish', 'ar': 'Arabic', 'zh': 'Chinese', 'tr': 'Turkish',
+  };
+
+  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+
+  /// Write a single preference key to Firebase
+  Future<void> _setPref(String key, dynamic value) async {
+    final uid = _uid;
+    if (uid == null) return;
+    await FirebaseDatabase.instance.ref('users/$uid/$key').set(value);
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final uid = _uid;
 
     return Scaffold(
       backgroundColor: c.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            children: [
-              _buildTopAppBar(c),
-              if (uid != null)
-                StreamBuilder<DatabaseEvent>(
-                  stream: FirebaseDatabase.instance.ref('users/$uid').onValue,
-                  builder: (context, snapshot) {
-                    app_user.User? user;
-                    if (snapshot.hasData && snapshot.data!.snapshot.exists) {
-                      user = app_user.User.fromJson(Map<String, dynamic>.from(snapshot.data!.snapshot.value as Map));
-                    }
-                    return _buildProfileSection(c, user);
-                  },
-                )
-              else
-                _buildProfileSection(c, null),
-              _buildGeneralSection(c),
-              _buildNotificationsSection(c),
-              _buildPaymentsSection(c),
-              _buildPrivacySection(c),
-              _buildSupportSection(c),
-              _buildFooter(c),
-            ],
-          ),
-        ),
+        child: uid != null
+            ? StreamBuilder<DatabaseEvent>(
+                stream: FirebaseDatabase.instance.ref('users/$uid').onValue,
+                builder: (context, snapshot) {
+                  // Sync local state from Firebase whenever data arrives
+                  if (snapshot.hasData && snapshot.data!.snapshot.exists) {
+                    final data = Map<String, dynamic>.from(
+                        snapshot.data!.snapshot.value as Map);
+                    final user = app_user.User.fromJson(data);
+
+                    // Only update local toggles if not currently being edited
+                    // (we use WidgetsBinding to avoid setState in build)
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!mounted) return;
+                      setState(() {
+                        _pushNotifications = user.pushNotifications;
+                        _emailUpdates = user.emailUpdates;
+                        _faceIDLogin = user.faceIdLogin;
+                        _selectedLanguage = _langNames[user.language] ?? 'English';
+                        _selectedCurrency = user.currency;
+                      });
+                    });
+
+                    return _buildBody(c, user);
+                  }
+                  return _buildBody(c, null);
+                },
+              )
+            : _buildBody(c, null),
+      ),
+    );
+  }
+
+  Widget _buildBody(AppColorScheme c, app_user.User? user) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        children: [
+          _buildTopAppBar(c),
+          _buildProfileSection(c, user),
+          _buildGeneralSection(c),
+          _buildNotificationsSection(c),
+          _buildPaymentsSection(c),
+          _buildPrivacySection(c),
+          _buildSupportSection(c),
+          _buildFooter(c),
+        ],
       ),
     );
   }
@@ -163,13 +198,15 @@ class _SettingsPageState extends State<Setting> {
           c: c, icon: Icons.language, title: AppStrings.language, value: _selectedLanguage,
           onTap: () async {
             await Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const LanguagePage()));
-            // In a real app, read the result back; for now just label stays
+            // State will refresh from StreamBuilder automatically
           },
           showDivider: true,
         ),
         _buildSettingItem(
           c: c, icon: Icons.currency_exchange, title: AppStrings.currency, value: _selectedCurrency,
-          onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const CurrencyPage())),
+          onTap: () async {
+            await Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const CurrencyPage()));
+          },
           showDivider: false,
         ),
       ],
@@ -185,13 +222,19 @@ class _SettingsPageState extends State<Setting> {
         _buildToggleItem(
           c: c, icon: Icons.notifications, title: AppStrings.pushNotifications,
           value: _pushNotifications,
-          onChanged: (v) => setState(() => _pushNotifications = v),
+          onChanged: (v) {
+            setState(() => _pushNotifications = v);
+            _setPref('pushNotifications', v);
+          },
           showDivider: true,
         ),
         _buildToggleItem(
           c: c, icon: Icons.mail, title: AppStrings.emailUpdates,
           value: _emailUpdates,
-          onChanged: (v) => setState(() => _emailUpdates = v),
+          onChanged: (v) {
+            setState(() => _emailUpdates = v);
+            _setPref('emailUpdates', v);
+          },
           showDivider: false,
         ),
       ],
@@ -232,7 +275,10 @@ class _SettingsPageState extends State<Setting> {
         _buildToggleItem(
           c: c, icon: Icons.face, title: AppStrings.faceIdLogin,
           value: _faceIDLogin,
-          onChanged: (v) => setState(() => _faceIDLogin = v),
+          onChanged: (v) {
+            setState(() => _faceIDLogin = v);
+            _setPref('faceIdLogin', v);
+          },
           showDivider: false,
         ),
       ],

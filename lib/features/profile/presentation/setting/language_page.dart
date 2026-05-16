@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class LanguagePage extends StatefulWidget {
   const LanguagePage({super.key});
@@ -11,6 +13,8 @@ class LanguagePage extends StatefulWidget {
 
 class _LanguagePageState extends State<LanguagePage> {
   String _selected = 'en';
+  bool _isLoading = true;
+  bool _isSaving = false;
 
   final List<Map<String, String>> _languages = [
     {'code': 'en', 'name': 'English', 'native': 'English', 'flag': '🇬🇧'},
@@ -22,6 +26,54 @@ class _LanguagePageState extends State<LanguagePage> {
     {'code': 'zh', 'name': 'Chinese', 'native': '中文', 'flag': '🇨🇳'},
     {'code': 'tr', 'name': 'Turkish', 'native': 'Türkçe', 'flag': '🇹🇷'},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLanguage();
+  }
+
+  Future<void> _loadLanguage() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+    try {
+      final snap = await FirebaseDatabase.instance.ref('users/$uid/language').get();
+      if (snap.exists && snap.value != null) {
+        setState(() => _selected = snap.value as String);
+      }
+    } catch (_) {}
+    setState(() => _isLoading = false);
+  }
+
+  Future<void> _applyLanguage() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    setState(() => _isSaving = true);
+    try {
+      await FirebaseDatabase.instance.ref('users/$uid/language').set(_selected);
+      final langName = _languages.firstWhere((l) => l['code'] == _selected)['name']!;
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Language updated to $langName'),
+          backgroundColor: context.appColors.primary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save: $e'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,75 +103,71 @@ class _LanguagePageState extends State<LanguagePage> {
               ),
             ),
 
-            // Search hint
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  color: c.inputBg,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: c.border),
-                ),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 12),
-                    Icon(Icons.search, color: c.textSecondary, size: 20),
-                    const SizedBox(width: 8),
-                    Text('Search language…', style: GoogleFonts.plusJakartaSans(fontSize: 14, color: c.textHint)),
-                  ],
+            if (_isLoading)
+              Expanded(child: Center(child: CircularProgressIndicator(color: c.primary)))
+            else ...[
+              // Search hint
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: c.inputBg,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: c.border),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 12),
+                      Icon(Icons.search, color: c.textSecondary, size: 20),
+                      const SizedBox(width: 8),
+                      Text('Search language…', style: GoogleFonts.plusJakartaSans(fontSize: 14, color: c.textHint)),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: _languages.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (context, i) {
-                  final lang = _languages[i];
-                  final isSelected = _selected == lang['code'];
-                  return _LanguageTile(
-                    flag: lang['flag']!,
-                    name: lang['name']!,
-                    native: lang['native']!,
-                    isSelected: isSelected,
-                    c: c,
-                    onTap: () => setState(() => _selected = lang['code']!),
-                  );
-                },
-              ),
-            ),
-
-            // Apply button
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Language updated to ${_languages.firstWhere((l) => l['code'] == _selected)['name']}'),
-                        backgroundColor: c.primary,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  itemCount: _languages.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, i) {
+                    final lang = _languages[i];
+                    final isSelected = _selected == lang['code'];
+                    return _LanguageTile(
+                      flag: lang['flag']!,
+                      name: lang['name']!,
+                      native: lang['native']!,
+                      isSelected: isSelected,
+                      c: c,
+                      onTap: () => setState(() => _selected = lang['code']!),
                     );
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: c.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
-                  ),
-                  child: Text('Apply Language', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
-            ),
+
+              // Apply button
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: _isSaving ? null : _applyLanguage,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: c.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                    child: _isSaving
+                        ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                        : Text('Apply Language', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

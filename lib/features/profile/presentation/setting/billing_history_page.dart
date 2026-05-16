@@ -1,24 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
 
 class BillingHistoryPage extends StatelessWidget {
   const BillingHistoryPage({super.key});
 
-  final List<Map<String, dynamic>> _transactions = const [
-    {'id': 'INV-2024-001', 'title': 'Monthly Rent — Apt Unirii', 'date': '2024-05-01', 'amount': 480.0, 'status': 'paid'},
-    {'id': 'INV-2024-002', 'title': 'Monthly Rent — Apt Unirii', 'date': '2024-04-01', 'amount': 480.0, 'status': 'paid'},
-    {'id': 'INV-2024-003', 'title': 'Service Fee', 'date': '2024-03-28', 'amount': 24.0, 'status': 'paid'},
-    {'id': 'INV-2024-004', 'title': 'Monthly Rent — Regie Studio', 'date': '2024-03-01', 'amount': 350.0, 'status': 'paid'},
-    {'id': 'INV-2024-005', 'title': 'Deposit — Regie Studio', 'date': '2024-02-28', 'amount': 700.0, 'status': 'refunded'},
-    {'id': 'INV-2024-006', 'title': 'Service Fee', 'date': '2024-02-15', 'amount': 17.5, 'status': 'failed'},
-  ];
-
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
-    final total = _transactions.where((t) => t['status'] == 'paid').fold(0.0, (s, t) => s + (t['amount'] as double));
+    final uid = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
       backgroundColor: c.background,
@@ -43,56 +36,133 @@ class BillingHistoryPage extends StatelessWidget {
               ),
             ),
 
-            // Summary card
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [c.primary, c.primary.withValues(alpha: 0.75)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: c.primary.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6))],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+            if (uid == null)
+              Expanded(child: Center(child: Text('Not logged in', style: GoogleFonts.plusJakartaSans(color: c.textSecondary))))
+            else
+              Expanded(
+                child: StreamBuilder<DatabaseEvent>(
+                  stream: FirebaseDatabase.instance.ref('bookings').onValue,
+                  builder: (context, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator(color: c.primary));
+                    }
+
+                    // Build transaction list from accepted bookings belonging to this user
+                    final List<Map<String, dynamic>> transactions = [];
+                    if (snap.hasData && snap.data!.snapshot.exists) {
+                      final raw = snap.data!.snapshot.value as Map;
+                      raw.forEach((key, val) {
+                        final booking = Map<String, dynamic>.from(val as Map);
+                        // Show bookings where current user is the tenant
+                        if (booking['userId'] == uid || booking['tenantId'] == uid) {
+                          final status = booking['status'] as String? ?? 'pending';
+                          // Map booking status to transaction status
+                          String txStatus;
+                          if (status == 'accepted' || status == 'confirmed') {
+                            txStatus = 'paid';
+                          } else if (status == 'cancelled' || status == 'declined') {
+                            txStatus = 'failed';
+                          } else {
+                            txStatus = 'pending';
+                          }
+                          transactions.add({
+                            'id': 'BK-${(key as String).substring(0, 6).toUpperCase()}',
+                            'title': booking['propertyTitle'] ?? booking['listingTitle'] ?? 'Booking',
+                            'date': booking['createdAt'] ?? booking['startDate'] ?? DateTime.now().toIso8601String(),
+                            'amount': (booking['totalPrice'] ?? booking['price'] ?? 0).toDouble(),
+                            'status': txStatus,
+                          });
+                        }
+                      });
+                    }
+
+                    // Sort by date descending
+                    transactions.sort((a, b) {
+                      final da = DateTime.tryParse(a['date'] as String) ?? DateTime(2000);
+                      final db = DateTime.tryParse(b['date'] as String) ?? DateTime(2000);
+                      return db.compareTo(da);
+                    });
+
+                    final totalPaid = transactions
+                        .where((t) => t['status'] == 'paid')
+                        .fold(0.0, (s, t) => s + (t['amount'] as double));
+
+                    if (transactions.isEmpty) {
+                      return Column(
                         children: [
-                          Text('Total Paid', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: Colors.white70)),
-                          const SizedBox(height: 4),
-                          Text('€${total.toStringAsFixed(2)}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
-                          const SizedBox(height: 4),
-                          Text('${_transactions.where((t) => t['status'] == 'paid').length} transactions',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white60)),
+                          _buildSummaryCard(c, 0, 0),
+                          Expanded(
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.receipt_long_outlined, size: 56, color: c.textSecondary.withValues(alpha: 0.4)),
+                                  const SizedBox(height: 12),
+                                  Text('No billing history yet', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w600, color: c.textSecondary)),
+                                  const SizedBox(height: 6),
+                                  Text('Your completed bookings will appear here.', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.textHint)),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
-                      ),
-                    ),
-                    Container(
-                      width: 56, height: 56,
-                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), shape: BoxShape.circle),
-                      child: const Icon(Icons.receipt_long, color: Colors.white, size: 28),
-                    ),
-                  ],
+                      );
+                    }
+
+                    return Column(
+                      children: [
+                        _buildSummaryCard(c, totalPaid, transactions.where((t) => t['status'] == 'paid').length),
+                        Expanded(
+                          child: ListView.separated(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: transactions.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 8),
+                            itemBuilder: (context, i) => _TransactionTile(transaction: transactions[i], c: c),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    );
+                  },
                 ),
               ),
-            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-            // List
+  Widget _buildSummaryCard(AppColorScheme c, double total, int count) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [c.primary, c.primary.withValues(alpha: 0.75)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: c.primary.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6))],
+        ),
+        child: Row(
+          children: [
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _transactions.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (context, i) {
-                  final t = _transactions[i];
-                  return _TransactionTile(transaction: t, c: c);
-                },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Total Paid', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: Colors.white70)),
+                  const SizedBox(height: 4),
+                  Text('€${total.toStringAsFixed(2)}',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const SizedBox(height: 4),
+                  Text('$count transaction${count == 1 ? '' : 's'}',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white60)),
+                ],
               ),
             ),
-
-            const SizedBox(height: 16),
+            Container(
+              width: 56, height: 56,
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), shape: BoxShape.circle),
+              child: const Icon(Icons.receipt_long, color: Colors.white, size: 28),
+            ),
           ],
         ),
       ),
@@ -110,8 +180,21 @@ class _TransactionTile extends StatelessWidget {
     final status = transaction['status'] as String;
     final isPaid = status == 'paid';
     final isRefunded = status == 'refunded';
-    final statusColor = isPaid ? Colors.green : isRefunded ? Colors.blue : Colors.red;
-    final statusLabel = isPaid ? 'Paid' : isRefunded ? 'Refunded' : 'Failed';
+    final isPending = status == 'pending';
+    final statusColor = isPaid
+        ? Colors.green
+        : isRefunded
+            ? Colors.blue
+            : isPending
+                ? Colors.orange
+                : Colors.red;
+    final statusLabel = isPaid
+        ? 'Paid'
+        : isRefunded
+            ? 'Refunded'
+            : isPending
+                ? 'Pending'
+                : 'Failed';
     final amountPrefix = isRefunded ? '+' : '-';
 
     final date = DateTime.tryParse(transaction['date'] as String);
@@ -130,12 +213,16 @@ class _TransactionTile extends StatelessWidget {
           children: [
             Container(
               width: 44, height: 44,
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(isPaid ? Icons.check_circle_outline : isRefunded ? Icons.replay : Icons.error_outline,
-                  color: statusColor, size: 22),
+              decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+              child: Icon(
+                isPaid
+                    ? Icons.check_circle_outline
+                    : isRefunded
+                        ? Icons.replay
+                        : isPending
+                            ? Icons.hourglass_empty
+                            : Icons.error_outline,
+                color: statusColor, size: 22),
             ),
             const SizedBox(width: 12),
             Expanded(

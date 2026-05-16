@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class PaymentMethodsPage extends StatefulWidget {
   const PaymentMethodsPage({super.key});
@@ -10,10 +12,74 @@ class PaymentMethodsPage extends StatefulWidget {
 }
 
 class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
-  final List<Map<String, dynamic>> _cards = [
-    {'brand': 'Visa', 'last4': '4242', 'expiry': '12/27', 'isDefault': true, 'color': const Color(0xFF1A56DB)},
-    {'brand': 'Mastercard', 'last4': '1234', 'expiry': '08/26', 'isDefault': false, 'color': const Color(0xFFEB5757)},
-  ];
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _cards = [];
+
+  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+  DatabaseReference get _cardsRef =>
+      FirebaseDatabase.instance.ref('users/${_uid!}/paymentMethods');
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCards();
+  }
+
+  Future<void> _loadCards() async {
+    final uid = _uid;
+    if (uid == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+    try {
+      final snap = await _cardsRef.get();
+      final List<Map<String, dynamic>> loaded = [];
+      if (snap.exists && snap.value != null) {
+        final raw = snap.value as Map;
+        raw.forEach((key, val) {
+          final card = Map<String, dynamic>.from(val as Map);
+          card['_key'] = key;
+          loaded.add(card);
+        });
+      }
+      setState(() {
+        _cards = loaded;
+        _isLoading = false;
+      });
+    } catch (_) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _setDefault(String key) async {
+    final uid = _uid;
+    if (uid == null) return;
+    // Mark all as non-default, then set the chosen one
+    final Map<String, dynamic> updates = {};
+    for (final card in _cards) {
+      updates['users/$uid/paymentMethods/${card['_key']}/isDefault'] =
+          card['_key'] == key;
+    }
+    await FirebaseDatabase.instance.ref().update(updates);
+    setState(() {
+      for (final c in _cards) {
+        c['isDefault'] = c['_key'] == key;
+      }
+    });
+  }
+
+  Future<void> _deleteCard(String key) async {
+    await _cardsRef.child(key).remove();
+    setState(() => _cards.removeWhere((c) => c['_key'] == key));
+  }
+
+  Future<void> _addCard(Map<String, dynamic> card) async {
+    final ref = _cardsRef.push();
+    card['isDefault'] = _cards.isEmpty; // first card becomes default
+    await ref.set(card);
+    card['_key'] = ref.key;
+    setState(() => _cards.add(card));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,89 +102,100 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
               ),
             ),
 
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Your Cards', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: c.textMain)),
-                    const SizedBox(height: 12),
+            if (_isLoading)
+              Expanded(child: Center(child: CircularProgressIndicator(color: c.primary)))
+            else
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Your Cards', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: c.textMain)),
+                      const SizedBox(height: 12),
 
-                    // Cards
-                    ..._cards.asMap().entries.map((entry) {
-                      final i = entry.key;
-                      final card = entry.value;
-                      return _CardTile(card: card, c: c, onSetDefault: () {
-                        setState(() {
-                          for (var c in _cards) { c['isDefault'] = false; }
-                          _cards[i]['isDefault'] = true;
-                        });
-                      }, onDelete: () {
-                        setState(() => _cards.removeAt(i));
-                      });
-                    }),
+                      if (_cards.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: Text('No saved cards yet.', style: GoogleFonts.plusJakartaSans(fontSize: 14, color: c.textSecondary)),
+                          ),
+                        ),
 
-                    const SizedBox(height: 20),
+                      ..._cards.map((card) {
+                        final key = card['_key'] as String;
+                        final colorVal = card['color'];
+                        final Color cardColor = colorVal is int
+                            ? Color(colorVal)
+                            : const Color(0xFF1A56DB);
+                        return _CardTile(
+                          card: {...card, 'color': cardColor},
+                          c: c,
+                          onSetDefault: () => _setDefault(key),
+                          onDelete: () => _deleteCard(key),
+                        );
+                      }),
 
-                    // Add new card button
-                    GestureDetector(
-                      onTap: () => _showAddCardSheet(c),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      const SizedBox(height: 20),
+
+                      // Add new card button
+                      GestureDetector(
+                        onTap: () => _showAddCardSheet(c),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: c.card,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: c.primary),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_circle_outline, color: c.primary, size: 20),
+                              const SizedBox(width: 8),
+                              Text('Add New Card', style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w600, color: c.primary)),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      Text('Other Payment Methods', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: c.textMain)),
+                      const SizedBox(height: 12),
+
+                      _otherMethod(Icons.account_balance, 'Bank Transfer', 'Connect your bank account', c),
+                      const SizedBox(height: 8),
+                      _otherMethod(Icons.paypal_rounded, 'PayPal', 'Link your PayPal account', c),
+
+                      const SizedBox(height: 24),
+
+                      // Security note
+                      Container(
+                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: c.card,
+                          color: Colors.green.withValues(alpha: 0.07),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: c.primary, style: BorderStyle.solid),
+                          border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
                         ),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.add_circle_outline, color: c.primary, size: 20),
-                            const SizedBox(width: 8),
-                            Text('Add New Card', style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w600, color: c.primary)),
+                            const Icon(Icons.lock_outlined, color: Colors.green, size: 18),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Your payment info is encrypted and stored securely.',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: Colors.green.shade700),
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    Text('Other Payment Methods', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: c.textMain)),
-                    const SizedBox(height: 12),
-
-                    _otherMethod(Icons.account_balance, 'Bank Transfer', 'Connect your bank account', c),
-                    const SizedBox(height: 8),
-                    _otherMethod(Icons.paypal_rounded, 'PayPal', 'Link your PayPal account', c),
-
-                    const SizedBox(height: 24),
-
-                    // Security note
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.07),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.lock_outlined, color: Colors.green, size: 18),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'Your payment info is encrypted and stored securely.',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: Colors.green.shade700),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -128,35 +205,29 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   Widget _otherMethod(IconData icon, String title, String sub, AppColorScheme c) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: c.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: c.border),
-      ),
+      decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(12), border: Border.all(color: c.border)),
       child: Row(
         children: [
-          Container(
-            width: 44, height: 44,
-            decoration: BoxDecoration(color: c.statsBg, borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: c.textMain, size: 24),
-          ),
+          Container(width: 44, height: 44, decoration: BoxDecoration(color: c.statsBg, borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: c.textMain, size: 24)),
           const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w600, color: c.textMain)),
-                Text(sub, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.textSecondary)),
-              ],
-            ),
-          ),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w600, color: c.textMain)),
+            Text(sub, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.textSecondary)),
+          ])),
           Icon(Icons.chevron_right, color: c.textSecondary),
         ],
       ),
     );
   }
 
+  // Temporary controllers for the add-card sheet
+  final _cardNumCtrl = TextEditingController();
+  final _expiryCtrl  = TextEditingController();
+  final _cvvCtrl     = TextEditingController();
+  final _nameCtrl    = TextEditingController();
+
   void _showAddCardSheet(AppColorScheme c) {
+    _cardNumCtrl.clear(); _expiryCtrl.clear(); _cvvCtrl.clear(); _nameCtrl.clear();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -172,21 +243,38 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
             const SizedBox(height: 16),
             Text('Add Card', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: c.textMain)),
             const SizedBox(height: 16),
-            _sheetField('Card Number', '0000 0000 0000 0000', c),
+            _sheetField('Card Number', '0000 0000 0000 0000', c, _cardNumCtrl),
             const SizedBox(height: 12),
             Row(children: [
-              Expanded(child: _sheetField('Expiry Date', 'MM/YY', c)),
+              Expanded(child: _sheetField('Expiry Date', 'MM/YY', c, _expiryCtrl)),
               const SizedBox(width: 12),
-              Expanded(child: _sheetField('CVV', '•••', c)),
+              Expanded(child: _sheetField('CVV', '•••', c, _cvvCtrl)),
             ]),
             const SizedBox(height: 12),
-            _sheetField('Cardholder Name', 'Full name on card', c),
+            _sheetField('Cardholder Name', 'Full name on card', c, _nameCtrl),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () async {
+                  final num = _cardNumCtrl.text.trim();
+                  final last4 = num.length >= 4 ? num.substring(num.length - 4) : '0000';
+                  final brand = num.startsWith('4') ? 'Visa' : 'Mastercard';
+                  Navigator.pop(context);
+                  await _addCard({
+                    'brand': brand,
+                    'last4': last4,
+                    'expiry': _expiryCtrl.text.trim(),
+                    'holderName': _nameCtrl.text.trim(),
+                    'color': const Color(0xFF1A56DB).toARGB32(),
+                  });
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: const Text('Card saved successfully!'), backgroundColor: Colors.green, behavior: SnackBarBehavior.floating),
+                    );
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: c.primary,
                   foregroundColor: Colors.white,
@@ -201,12 +289,13 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
     );
   }
 
-  Widget _sheetField(String label, String hint, AppColorScheme c) => Column(
+  Widget _sheetField(String label, String hint, AppColorScheme c, TextEditingController ctrl) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: c.textLabel)),
       const SizedBox(height: 6),
       TextField(
+        controller: ctrl,
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: GoogleFonts.plusJakartaSans(fontSize: 14, color: c.textHint),
@@ -232,6 +321,7 @@ class _CardTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Color cardColor = card['color'] as Color? ?? const Color(0xFF1A56DB);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -244,7 +334,7 @@ class _CardTile extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [card['color'] as Color, (card['color'] as Color).withValues(alpha: 0.7)],
+              colors: [cardColor, cardColor.withValues(alpha: 0.7)],
               begin: Alignment.topLeft, end: Alignment.bottomRight,
             ),
           ),
@@ -254,7 +344,7 @@ class _CardTile extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(card['brand'], style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text(card['brand'] as String? ?? 'Card', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                   if (card['isDefault'] == true)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -264,13 +354,13 @@ class _CardTile extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Text('•••• •••• •••• ${card['last4']}',
+              Text('•••• •••• •••• ${card['last4'] ?? '0000'}',
                   style: GoogleFonts.firaSans(fontSize: 18, color: Colors.white, letterSpacing: 2)),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Expires ${card['expiry']}', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: Colors.white70)),
+                  Text('Expires ${card['expiry'] ?? ''}', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: Colors.white70)),
                   Row(children: [
                     if (card['isDefault'] != true)
                       GestureDetector(
