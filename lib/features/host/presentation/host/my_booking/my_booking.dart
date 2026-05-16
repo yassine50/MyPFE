@@ -8,6 +8,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pfe/features/home/data/repositories/property_repository.dart';
 import 'package:pfe/core/models/property_model.dart';
 import 'package:intl/intl.dart';
+import 'package:pfe/features/chat/data/repositories/chat_repository.dart';
+import 'package:pfe/core/utils/currency_formatter.dart';
 class MyBooking extends StatefulWidget {
   const MyBooking({super.key});
 
@@ -48,12 +50,29 @@ class _MyBookingsPageState extends State<MyBooking> {
     }
   }
 
-  Future<void> _updateBookingStatus(String bookingId, String status) async {
+  Future<void> _updateBookingStatus(String bookingId, String status, String propertyId, String guestId) async {
     try {
       await _database.ref('bookings').child(bookingId).update({'status': status});
+      
+      final hostId = FirebaseAuth.instance.currentUser?.uid ?? '';
+      if (hostId.isNotEmpty && propertyId.isNotEmpty && guestId.isNotEmpty) {
+        final chatRepo = ChatRepository();
+        final chatId = await chatRepo.createOrGetChat(propertyId, hostId, guestId);
+        
+        if (status == 'accepted') {
+          await chatRepo.openChat(chatId);
+          await chatRepo.sendMessage(chatId, hostId, "I have accepted your booking request. Welcome!");
+        } else if (status == 'rejected') {
+          await chatRepo.closeChat(chatId);
+        }
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Booking $status successfully')),
+          SnackBar(
+            content: Text('Booking $status successfully'),
+            backgroundColor: status == 'accepted' ? Colors.green : Colors.red,
+          ),
         );
       }
     } catch (e) {
@@ -267,9 +286,11 @@ class _MyBookingsPageState extends State<MyBooking> {
                             renterImage: 'https://i.pravatar.cc/150?u=${booking['guestId']}',
                             renterName: 'Guest User', // We don't have user profiles fetched yet
                             renterRating: 'New',
-                            price: '€$totalPrice',
+                            price: CurrencyFormatter.format(num.parse(totalPrice)),
                             priceUnit: 'total',
                             propertyImage: propertyImage,
+                            propertyId: propertyId,
+                            guestId: booking['guestId']?.toString() ?? '',
                           );
                         },
                       );
@@ -299,6 +320,8 @@ class _MyBookingsPageState extends State<MyBooking> {
     required String price,
     required String priceUnit,
     required String propertyImage,
+    required String propertyId,
+    required String guestId,
     bool isUrgent = false,
   }) {
     return GestureDetector(
@@ -306,7 +329,7 @@ class _MyBookingsPageState extends State<MyBooking> {
         Navigator.push(
           context,
           MaterialPageRoute<void>(
-            builder: (context) => const InvitationDetails(),
+            builder: (context) => InvitationDetails(bookingId: bookingId),
           ),
         );
       },
@@ -476,7 +499,7 @@ class _MyBookingsPageState extends State<MyBooking> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => _updateBookingStatus(bookingId, 'rejected'),
+                      onPressed: () => _updateBookingStatus(bookingId, 'rejected', propertyId, guestId),
                       style: OutlinedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         side: BorderSide(
@@ -501,7 +524,7 @@ class _MyBookingsPageState extends State<MyBooking> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () => _updateBookingStatus(bookingId, 'accepted'),
+                      onPressed: () => _updateBookingStatus(bookingId, 'accepted', propertyId, guestId),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF136DEC),
                         padding: const EdgeInsets.symmetric(vertical: 12),

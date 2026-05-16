@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 import 'package:pfe/core/models/property_model.dart';
+import 'package:pfe/core/utils/currency_formatter.dart' as pfe_currency;
+
 class CardHome extends StatefulWidget {
   final PropertyModel property;
 
@@ -42,7 +44,10 @@ class _CardHomeState extends State<CardHome> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-    return GestureDetector(
+    return ValueListenableBuilder<String>(
+      valueListenable: pfe_currency.CurrencyFormatter.symbolNotifier,
+      builder: (context, symbol, child) {
+        return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
@@ -106,7 +111,7 @@ class _CardHomeState extends State<CardHome> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        widget.property.price,
+                        widget.property.displayPrice,
                         style: GoogleFonts.firaSans(
                           fontWeight: FontWeight.w600,
                         ),
@@ -149,6 +154,8 @@ class _CardHomeState extends State<CardHome> {
           ],
         ),
       ),
+        );
+      },
     );
   }
 

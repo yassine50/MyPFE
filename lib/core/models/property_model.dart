@@ -1,3 +1,5 @@
+import 'package:pfe/core/utils/currency_formatter.dart';
+
 class PropertyModel {
   final String id;
   final String title;
@@ -13,6 +15,16 @@ class PropertyModel {
   final String hostId;
   final bool isActive;
   
+  String get displayPrice {
+    final match = RegExp(r'(\d+)').firstMatch(price);
+    if (match != null) {
+      final amount = match.group(1);
+      final rest = price.substring(match.end).replaceAll('€', '').trim();
+      return '${CurrencyFormatter.symbol}$amount $rest'.trim();
+    }
+    return price.replaceAll('€', CurrencyFormatter.symbol);
+  }
+
   // New deep fields
   final String description;
   final String moveInDate;

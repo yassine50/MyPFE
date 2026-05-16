@@ -8,6 +8,7 @@ class Conversation {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String lastMessage;
+  final bool isClosed;
   final List<Message> messages;
 
   Conversation({
@@ -18,6 +19,7 @@ class Conversation {
     required this.createdAt,
     required this.updatedAt,
     this.lastMessage = '',
+    this.isClosed = false,
     this.messages = const [],
   });
 
@@ -34,6 +36,7 @@ class Conversation {
           ? DateTime.fromMillisecondsSinceEpoch(map['updatedAt'] as int)
           : DateTime.now(),
       lastMessage: map['lastMessage']?.toString() ?? '',
+      isClosed: map['isClosed'] as bool? ?? false,
       // Note: we usually fetch messages separately from a sub-node, but if they are nested:
       messages: map['messages'] != null
           ? (map['messages'] as Map<dynamic, dynamic>)
@@ -52,6 +55,7 @@ class Conversation {
       'createdAt': createdAt.millisecondsSinceEpoch,
       'updatedAt': updatedAt.millisecondsSinceEpoch,
       'lastMessage': lastMessage,
+      'isClosed': isClosed,
     };
   }
 }

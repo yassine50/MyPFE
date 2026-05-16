@@ -6,6 +6,7 @@ import 'package:pfe/core/models/property_model.dart';
 
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:pfe/core/utils/currency_formatter.dart';
 import 'package:pfe/features/chat/data/repositories/chat_repository.dart';
 
 class SendRequest extends StatefulWidget {
@@ -118,7 +119,7 @@ class _RequestToRentPageState extends State<SendRequest> {
           widget.property.hostId,
           uid,
         );
-        await chatRepo.sendMessage(chatId, uid, _messageController.text);
+        await chatRepo.sendMessage(chatId, uid, _messageController.text, force: true);
       }
 
       if (!mounted) return;
@@ -148,59 +149,65 @@ class _RequestToRentPageState extends State<SendRequest> {
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
-    final priceStr = widget.property.price.replaceAll(RegExp(r'[^0-9]'), '');
-    final pricePerMonth = double.tryParse(priceStr) ?? 450.0;
-    final serviceFee = 25.0;
-    
-    int days = _moveOutDate.difference(_moveInDate).inDays;
-    if (days <= 0) days = 1;
-    double months = days / 30.0;
-    double rentTotal = pricePerMonth * months;
-    double total = rentTotal + serviceFee;
 
-    return Scaffold(
-      backgroundColor: c.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top App Bar
-            _buildTopAppBar(c),
+    return ValueListenableBuilder<String>(
+      valueListenable: CurrencyFormatter.symbolNotifier,
+      builder: (context, symbol, child) {
+        final priceStr = widget.property.price.replaceAll(RegExp(r'[^0-9]'), '');
+        final pricePerMonth = double.tryParse(priceStr) ?? 450.0;
+        const serviceFee = 25.0;
 
-            // Scrollable Content
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.only(bottom: 120), // Space for footer
-                child: Column(
-                  children: [
-                    // Property Summary Card
-                    _buildPropertySummaryCard(c, pricePerMonth),
+        int days = _moveOutDate.difference(_moveInDate).inDays;
+        if (days <= 0) days = 1;
+        final double months = days / 30.0;
+        final double rentTotal = pricePerMonth * months;
+        final double total = rentTotal + serviceFee;
 
-                    // Trip Details Section
-                    _buildTripDetailsSection(c),
+        return Scaffold(
+          backgroundColor: c.background,
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Top App Bar
+                _buildTopAppBar(c),
 
-                    // Message Section
-                    _buildMessageSection(c),
+                // Scrollable Content
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 120),
+                    child: Column(
+                      children: [
+                        // Property Summary Card
+                        _buildPropertySummaryCard(c, pricePerMonth),
 
-                    // Price Breakdown
-                    _buildPriceBreakdown(
-                      c,
-                      pricePerMonth,
-                      months,
-                      rentTotal,
-                      serviceFee,
-                      total,
+                        // Trip Details Section
+                        _buildTripDetailsSection(c),
+
+                        // Message Section
+                        _buildMessageSection(c),
+
+                        // Price Breakdown
+                        _buildPriceBreakdown(
+                          c,
+                          pricePerMonth,
+                          months,
+                          rentTotal,
+                          serviceFee,
+                          total,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-            // Sticky Footer
-            _buildFooter(c, total),
-          ],
-        ),
-      ),
+                // Sticky Footer
+                _buildFooter(c, total),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -302,7 +309,7 @@ class _RequestToRentPageState extends State<SendRequest> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${price.toInt()}€ / month',
+                      '${CurrencyFormatter.format(price)} / month',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 14,
                         fontWeight: FontWeight.normal,
@@ -706,14 +713,14 @@ class _RequestToRentPageState extends State<SendRequest> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${price.toInt()}€ x ${months.toStringAsFixed(1)} months',
+                  '${CurrencyFormatter.format(price)} x ${months.toStringAsFixed(1)} months',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     color: c.textSecondary,
                   ),
                 ),
                 Text(
-                  '${rentTotal.toInt()}€',
+                  CurrencyFormatter.format(rentTotal),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     color: c.textSecondary,
@@ -736,7 +743,7 @@ class _RequestToRentPageState extends State<SendRequest> {
                   ),
                 ),
                 Text(
-                  '${serviceFee.toInt()}€',
+                  CurrencyFormatter.format(serviceFee),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     color: c.textSecondary,
@@ -764,7 +771,7 @@ class _RequestToRentPageState extends State<SendRequest> {
                   ),
                 ),
                 Text(
-                  '${total.toInt()}€',
+                  CurrencyFormatter.format(total),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

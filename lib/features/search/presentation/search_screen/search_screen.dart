@@ -4,6 +4,7 @@ import 'package:pfe/core/widgets/list_card_home/list_card_home.dart';
 import 'package:pfe/core/widgets/search_bar/search_bar.dart';
 import 'package:pfe/core/widgets/header/header.dart';
 import 'package:pfe/core/models/property_model.dart';
+import 'package:pfe/core/utils/currency_formatter.dart';
 
 class SearchScreen extends StatefulWidget {
   final List<PropertyModel>? properties;
@@ -54,7 +55,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       id: 'search1',
                       title: '3-Bed Apt near Poli',
                       subtitle: 'Regie area • 3 Rooms',
-                      price: '600€ / mo',
+                      price: '${CurrencyFormatter.format(600)} / mo',
                       rating: '4.7',
                       images: [
                           'https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*',
@@ -66,7 +67,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       id: 'search2',
                       title: 'Sunny Flat in Unirii',
                       subtitle: 'Center • 2 Rooms',
-                      price: '480€ / mo',
+                      price: '${CurrencyFormatter.format(480)} / mo',
                       rating: '4.5',
                       images: [
                           'https://hips.hearstapps.com/hmg-prod/images/dutch-colonial-house-style-66956274903da.jpg?crop=1.00xw:0.671xh;0,0.131xh&resize=1120:*',

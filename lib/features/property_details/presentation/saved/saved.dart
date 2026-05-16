@@ -5,6 +5,7 @@ import 'package:pfe/core/theme/app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:pfe/core/models/property_model.dart';
+import 'package:pfe/core/utils/currency_formatter.dart';
 
 class Saved extends StatefulWidget {
   const Saved({super.key});
@@ -372,19 +373,24 @@ class _SavedRoomsPageState extends State<Saved> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Price
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        room.price,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: c.primary,
-                        ),
-                      ),
-                    ],
+                  ValueListenableBuilder<String>(
+                    valueListenable: CurrencyFormatter.symbolNotifier,
+                    builder: (context, symbol, child) {
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            room.displayPrice,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: c.primary,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
 
                   // Remove Button

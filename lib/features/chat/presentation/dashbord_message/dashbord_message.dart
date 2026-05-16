@@ -371,6 +371,7 @@ class _ConversationItemState extends State<_ConversationItem> {
                     otherUserAvatar: _otherUserAvatar,
                     propertyTitle: _propertyTitle,
                     propertyImage: _propertyImage,
+                    isClosed: widget.conversation.isClosed,
                   ),
                 ),
               );

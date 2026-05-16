@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 import 'package:pfe/core/models/property_model.dart';
+import 'package:pfe/core/utils/currency_formatter.dart';
 import 'package:pfe/features/property_details/presentation/detail_screen/detail_screen.dart';
 class ListCardHome extends StatefulWidget {
   final PropertyModel property;
@@ -111,12 +112,17 @@ class _ListCardHomeState extends State<ListCardHome> {
                       },
                     ),
               const SizedBox(height: 6),
-              Text(
-                widget.property.price,
-                style: GoogleFonts.firaSans(
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1E6AF0),
-                ),
+              ValueListenableBuilder<String>(
+                valueListenable: CurrencyFormatter.symbolNotifier,
+                builder: (context, symbol, child) {
+                  return Text(
+                    widget.property.displayPrice,
+                    style: GoogleFonts.firaSans(
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1E6AF0),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 4),
               Row(

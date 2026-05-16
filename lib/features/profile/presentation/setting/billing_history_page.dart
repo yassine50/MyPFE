@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
+import 'package:pfe/core/utils/currency_formatter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
@@ -150,7 +151,7 @@ class BillingHistoryPage extends StatelessWidget {
                 children: [
                   Text('Total Paid', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: Colors.white70)),
                   const SizedBox(height: 4),
-                  Text('€${total.toStringAsFixed(2)}',
+                  Text(CurrencyFormatter.formatWithDecimals(total),
                       style: GoogleFonts.plusJakartaSans(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
                   const SizedBox(height: 4),
                   Text('$count transaction${count == 1 ? '' : 's'}',
@@ -240,7 +241,7 @@ class _TransactionTile extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('$amountPrefix€${(transaction['amount'] as double).toStringAsFixed(2)}',
+                Text('$amountPrefix${CurrencyFormatter.formatWithDecimals(transaction['amount'] as double)}',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 15, fontWeight: FontWeight.bold,
                       color: isRefunded ? Colors.blue : c.textMain,
@@ -276,7 +277,7 @@ class _TransactionTile extends StatelessWidget {
             _receiptRow('Invoice ID', t['id'] as String, c),
             _receiptRow('Description', t['title'] as String, c),
             _receiptRow('Date', t['date'] as String, c),
-            _receiptRow('Amount', '€${(t['amount'] as double).toStringAsFixed(2)}', c),
+            _receiptRow('Amount', CurrencyFormatter.formatWithDecimals(t['amount'] as double), c),
             _receiptRow('Status', (t['status'] as String).toUpperCase(), c),
             const SizedBox(height: 16),
           ],

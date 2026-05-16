@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pfe/core/models/message_model.dart' as model;
 import 'package:pfe/features/chat/data/repositories/chat_repository.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 
 class ChatScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class ChatScreen extends StatefulWidget {
   final String otherUserAvatar;
   final String propertyTitle;
   final String propertyImage;
+  final bool isClosed;
 
   const ChatScreen({
     super.key,
@@ -21,6 +23,7 @@ class ChatScreen extends StatefulWidget {
     required this.otherUserAvatar,
     required this.propertyTitle,
     required this.propertyImage,
+    this.isClosed = false,
   });
 
   @override
@@ -426,167 +429,200 @@ class _ChatScreenState extends State<ChatScreen>
       ),
 
       // Quick Replies & Input Bar (Positioned at bottom with proper safe area)
-      bottomSheet: Container(
-        color: c.card,
-        padding: EdgeInsets.fromLTRB(16, 12, 16, bottomPadding + 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Quick Replies
-            SizedBox(
-              height: 36,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: quickReplies.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _messageController.text = quickReplies[index];
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: c.buttonBg,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: c.border,
-                          ),
-                        ),
-                        child: Text(
-                          quickReplies[index],
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: c.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
+      bottomSheet: StreamBuilder<DatabaseEvent>(
+        stream: FirebaseDatabase.instance.ref('chats/${widget.chatId}').onValue,
+        builder: (context, snapshot) {
+          bool closed = widget.isClosed;
+          bool deleted = false;
+          if (snapshot.hasData) {
+            if (snapshot.data!.snapshot.exists) {
+              final chatData = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+              closed = chatData['isClosed'] == true;
+            } else {
+              deleted = true;
+            }
+          }
+
+          if (deleted || closed) {
+            return Container(
+              width: double.infinity,
+              color: c.card,
+              padding: EdgeInsets.fromLTRB(16, 24, 16, bottomPadding + 24),
+              child: Text(
+                deleted ? 'This conversation has been removed.' : 'This conversation is closed.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: c.textSecondary,
+                ),
               ),
-            ),
+            );
+          }
 
-            const SizedBox(height: 12),
-
-            // Input Bar
-            Row(
+          return Container(
+            color: c.card,
+            padding: EdgeInsets.fromLTRB(16, 12, 16, bottomPadding + 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Left Icons
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        Icons.add,
-                        color: c.textSecondary,
-                        size: 24,
-                      ),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shape: const CircleBorder(),
-                        padding: const EdgeInsets.all(6),
-                        minimumSize: const Size(36, 36),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        Icons.image,
-                        color: c.textSecondary,
-                        size: 24,
-                      ),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shape: const CircleBorder(),
-                        padding: const EdgeInsets.all(6),
-                        minimumSize: const Size(36, 36),
-                      ),
-                    ),
-                  ],
+                // Quick Replies
+                SizedBox(
+                  height: 36,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: quickReplies.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _messageController.text = quickReplies[index];
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: c.buttonBg,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: c.border,
+                              ),
+                            ),
+                            child: Text(
+                              quickReplies[index],
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: c.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
 
-                // Text Field
-                Expanded(
-                  child: Container(
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: c.card,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
+                const SizedBox(height: 12),
+
+                // Input Bar
+                Row(
+                  children: [
+                    // Left Icons
+                    Row(
                       children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _messageController,
-                            decoration: InputDecoration(
-                              hintText: 'Type a message...',
-                              hintStyle: TextStyle(
-                                color: const Color(0xFF9CA3AF),
-                                fontSize: 14,
-                              ),
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                            ),
-                            style: TextStyle(
-                              color: c.textMain,
-                              fontSize: 14,
-                            ),
-                            onSubmitted: (value) => _sendMessage(),
+                        IconButton(
+                          onPressed: () {},
+                          icon: Icon(
+                            Icons.add,
+                            color: c.textSecondary,
+                            size: 24,
+                          ),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shape: const CircleBorder(),
+                            padding: const EdgeInsets.all(6),
+                            minimumSize: const Size(36, 36),
                           ),
                         ),
                         IconButton(
                           onPressed: () {},
                           icon: Icon(
-                            Icons.emoji_emotions_outlined,
+                            Icons.image,
                             color: c.textSecondary,
-                            size: 20,
+                            size: 24,
                           ),
-                          padding: const EdgeInsets.all(0),
-                          constraints: const BoxConstraints(),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shape: const CircleBorder(),
+                            padding: const EdgeInsets.all(6),
+                            minimumSize: const Size(36, 36),
+                          ),
                         ),
-                        const SizedBox(width: 8),
                       ],
                     ),
-                  ),
-                ),
 
-                // Send Button
-                const SizedBox(width: 8),
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryBlue,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primaryBlue.withValues(alpha: 0.3),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                    // Text Field
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: c.card,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _messageController,
+                                decoration: InputDecoration(
+                                  hintText: 'Type a message...',
+                                  hintStyle: TextStyle(
+                                    color: const Color(0xFF9CA3AF),
+                                    fontSize: 14,
+                                  ),
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                ),
+                                style: TextStyle(
+                                  color: c.textMain,
+                                  fontSize: 14,
+                                ),
+                                onSubmitted: (value) => _sendMessage(),
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () {},
+                              icon: Icon(
+                                Icons.emoji_emotions_outlined,
+                                color: c.textSecondary,
+                                size: 20,
+                              ),
+                              padding: const EdgeInsets.all(0),
+                              constraints: const BoxConstraints(),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                  child: IconButton(
-                    onPressed: _sendMessage,
-                    icon: const Icon(Icons.send, color: Colors.white, size: 20),
-                    padding: const EdgeInsets.all(0),
-                  ),
+                    ),
+
+                    // Send Button
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryBlue,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryBlue.withValues(alpha: 0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        onPressed: _sendMessage,
+                        icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                        padding: const EdgeInsets.all(0),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

@@ -33,6 +33,7 @@ class ChatRepository {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       lastMessage: '',
+      isClosed: false,
     );
 
     await newChatRef.set(newChat.toMap());
@@ -40,7 +41,16 @@ class ChatRepository {
   }
 
   /// Sends a message in a specific chat
-  Future<void> sendMessage(String chatId, String senderId, String content) async {
+  Future<void> sendMessage(String chatId, String senderId, String content, {bool force = false}) async {
+    // Prevent recreating the chat if it was deleted
+    final chatSnapshot = await _db.ref('chats/$chatId').get();
+    if (!chatSnapshot.exists) return;
+    
+    if (!force) {
+      final chatData = chatSnapshot.value as Map<dynamic, dynamic>;
+      if (chatData['isClosed'] == true) return;
+    }
+
     final messageRef = _db.ref('chats/$chatId/messages').push();
     final message = Message(
       id: messageRef.key!,
@@ -55,6 +65,22 @@ class ChatRepository {
     // Update the lastMessage and updatedAt on the conversation
     await _db.ref('chats/$chatId').update({
       'lastMessage': content,
+      'updatedAt': ServerValue.timestamp,
+    });
+  }
+
+  /// Opens a chat so messages can be sent
+  Future<void> openChat(String chatId) async {
+    await _db.ref('chats/$chatId').update({
+      'isClosed': false,
+      'updatedAt': ServerValue.timestamp,
+    });
+  }
+
+  /// Closes a chat so no more messages can be sent
+  Future<void> closeChat(String chatId) async {
+    await _db.ref('chats/$chatId').update({
+      'isClosed': true,
       'updatedAt': ServerValue.timestamp,
     });
   }
