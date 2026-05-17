@@ -213,7 +213,7 @@ class _ChatScreenState extends State<ChatScreen>
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            'Oct 12 - Oct 14 • Confirmed',
+                            'View property details',
                             style: TextStyle(
                               fontSize: 12,
                               color: c.textSecondary,

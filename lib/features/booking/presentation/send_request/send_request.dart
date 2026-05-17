@@ -8,7 +8,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pfe/core/utils/currency_formatter.dart';
 import 'package:pfe/features/chat/data/repositories/chat_repository.dart';
-
+import 'package:pfe/features/notifications/data/services/notification_service.dart';
 class SendRequest extends StatefulWidget {
   final PropertyModel property;
   const SendRequest({super.key, required this.property});
@@ -129,6 +129,13 @@ class _RequestToRentPageState extends State<SendRequest> {
         );
         await chatRepo.sendMessage(chatId, uid, _messageController.text, force: true);
       }
+
+      final renterName = FirebaseAuth.instance.currentUser?.displayName ?? 'A guest';
+      await NotificationService.sendBookingRequestNotification(
+        hostId: widget.property.hostId,
+        renterName: renterName,
+        propertyTitle: widget.property.title,
+      );
 
       if (!mounted) return;
 

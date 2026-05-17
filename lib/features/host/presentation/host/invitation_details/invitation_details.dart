@@ -176,11 +176,17 @@ class _InvitationDetailsState extends State<InvitationDetails> {
   Widget _buildProfileSection(Map<String, dynamic> user, AppColorScheme c) {
     final name = user['fullName'] as String? ?? 'Guest User';
     final photoUrl = user['profileImage'] as String? ?? '';
-    final createdAt = user['createdAt'] as String? ?? '';
+    final createdAtRaw = user['createdAt'];
     String memberSince = '';
-    if (createdAt.isNotEmpty) {
+    if (createdAtRaw != null) {
       try {
-        final d = DateTime.parse(createdAt);
+        DateTime d;
+        if (createdAtRaw is int) {
+          // If it's a timestamp in ms (e.g. from ServerValue.timestamp or Date.now())
+          d = DateTime.fromMillisecondsSinceEpoch(createdAtRaw);
+        } else {
+          d = DateTime.parse(createdAtRaw.toString());
+        }
         memberSince = 'Member since ${DateFormat('MMM yyyy').format(d)}';
       } catch (_) {}
     }

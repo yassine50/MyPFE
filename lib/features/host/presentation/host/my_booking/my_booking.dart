@@ -9,6 +9,7 @@ import 'package:pfe/core/models/property_model.dart';
 import 'package:intl/intl.dart';
 import 'package:pfe/features/chat/data/repositories/chat_repository.dart';
 import 'package:pfe/core/utils/currency_formatter.dart';
+import 'package:pfe/features/notifications/data/services/notification_service.dart';
 class MyBooking extends StatefulWidget {
   const MyBooking({super.key});
 
@@ -64,6 +65,15 @@ class _MyBookingsPageState extends State<MyBooking> {
         } else if (status == 'rejected') {
           await chatRepo.closeChat(chatId);
         }
+
+        final propertyTitle = _properties[propertyId]?.title ?? 'Property';
+        final hostName = FirebaseAuth.instance.currentUser?.displayName ?? 'Your Host';
+        await NotificationService.sendBookingStatusNotification(
+          renterId: guestId,
+          hostName: hostName,
+          propertyTitle: propertyTitle,
+          accepted: status == 'accepted',
+        );
       }
 
       if (mounted) {

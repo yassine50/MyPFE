@@ -10,6 +10,9 @@ import 'package:pfe/features/booking/presentation/mybooking_rent/my_booking_rent
 import 'package:pfe/features/property_details/presentation/saved/saved.dart';
 import 'package:pfe/features/profile/presentation/setting/setting.dart';
 import 'package:pfe/features/home/presentation/home/home.dart';
+import 'package:pfe/features/notifications/presentation/notifications_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class GoogleNavBar extends StatefulWidget {
   final bool renter;
@@ -21,17 +24,56 @@ class GoogleNavBar extends StatefulWidget {
 
 class _GoogleNavBarState extends State<GoogleNavBar> {
   int _selectedIndex = 0;
+  int _unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenUnread();
+  }
+
+  void _listenUnread() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    FirebaseDatabase.instance
+        .ref('notifications/$uid')
+        .onValue
+        .listen((event) {
+      if (!mounted) return;
+      int count = 0;
+      if (event.snapshot.value != null) {
+        final raw = event.snapshot.value as Map<dynamic, dynamic>;
+        raw.forEach((_, val) {
+          if (val is Map && val['read'] != true) count++;
+        });
+      }
+      setState(() => _unreadCount = count);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = widget.renter
-        ? [HomeScreen(), Saved(), MyBookingRenter(), InboxWidget(isRenter: true), Setting(isHostMode: false)]
-        : [Dashbord(), MyListing(), MyBooking(), InboxWidget(isRenter: false), Setting(isHostMode: true)];
+        ? [
+            HomeScreen(),
+            Saved(),
+            const NotificationsScreen(),
+            MyBookingRenter(),
+            InboxWidget(isRenter: true),
+            Setting(isHostMode: false),
+          ]
+        : [
+            Dashbord(),
+            MyListing(),
+            const NotificationsScreen(),
+            MyBooking(),
+            InboxWidget(isRenter: false),
+            Setting(isHostMode: true),
+          ];
+
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: screens[_selectedIndex],
-
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -46,55 +88,118 @@ class _GoogleNavBarState extends State<GoogleNavBar> {
         child: SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
             child: GNav(
-              gap: 8,
-              iconSize: 24,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              gap: 4,
+              iconSize: 22,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               duration: const Duration(milliseconds: 400),
-
-              // 🎨 COLORS (MATCH IMAGE)
               backgroundColor: Colors.white,
-              color: Colors.grey.shade500, // inactive icon
-              activeColor: const Color(0xFF1E6AF0), // active icon & text
-              tabBackgroundColor: const Color(
-                0xFFEAF1FF,
-              ), // active pill background
-
+              color: Colors.grey.shade500,
+              activeColor: const Color(0xFF1E6AF0),
+              tabBackgroundColor: const Color(0xFFEAF1FF),
               textStyle: GoogleFonts.firaSans(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: const Color(0xFF1E6AF0),
               ),
-
               tabs: widget.renter
                   ? [
                       GButton(icon: Icons.search, text: AppStrings.navExplore),
                       GButton(icon: Icons.favorite_border, text: AppStrings.navSaved),
                       GButton(
+                        icon: Icons.notifications_outlined,
+                        text: 'Alerts',
+                        leading: _unreadCount > 0
+                            ? Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Icon(Icons.notifications_outlined,
+                                      size: _selectedIndex == 2 ? 22 : 24, 
+                                      color: _selectedIndex == 2 ? const Color(0xFF1E6AF0) : Colors.grey.shade500),
+                                  Positioned(
+                                    top: -4,
+                                    right: -4,
+                                    child: Container(
+                                      width: 14,
+                                      height: 14,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          _unreadCount > 9 ? '9+' : '$_unreadCount',
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 8,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : null,
+                      ),
+                      GButton(
                         icon: Icons.calendar_month_outlined,
-                        text: AppStrings.navBookings,
+                        text: 'Bookings',
                       ),
                       GButton(
                         icon: Icons.chat_bubble_outline,
-                        text: AppStrings.navMessages,
+                        text: 'Inbox',
                       ),
                       GButton(icon: Icons.person_outline, text: AppStrings.navProfile),
                     ]
                   : [
                       GButton(icon: Icons.dashboard_outlined, text: AppStrings.navDashbord),
-                      GButton(icon: Icons.apartment_outlined, text: AppStrings.navListings),
+                      GButton(icon: Icons.apartment_outlined, text: 'Listings'),
+                      GButton(
+                        icon: Icons.notifications_outlined,
+                        text: 'Alerts',
+                        leading: _unreadCount > 0
+                            ? Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Icon(Icons.notifications_outlined,
+                                      size: _selectedIndex == 2 ? 22 : 24, 
+                                      color: _selectedIndex == 2 ? const Color(0xFF1E6AF0) : Colors.grey.shade500),
+                                  Positioned(
+                                    top: -4,
+                                    right: -4,
+                                    child: Container(
+                                      width: 14,
+                                      height: 14,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          _unreadCount > 9 ? '9+' : '$_unreadCount',
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 8,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : null,
+                      ),
                       GButton(
                         icon: Icons.calendar_month_outlined,
-                        text: AppStrings.navBookings,
+                        text: 'Bookings',
                       ),
                       GButton(
                         icon: Icons.chat_bubble_outline,
-                        text: AppStrings.navMessages,
+                        text: 'Inbox',
                       ),
                       GButton(icon: Icons.person_outline, text: AppStrings.navProfile),
                     ],
-
               selectedIndex: _selectedIndex,
               onTabChange: (index) {
                 setState(() {

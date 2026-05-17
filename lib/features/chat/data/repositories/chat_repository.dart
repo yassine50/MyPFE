@@ -1,7 +1,8 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:pfe/core/models/conversation_model.dart';
 import 'package:pfe/core/models/message_model.dart';
-
+import 'package:pfe/features/notifications/data/services/notification_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 class ChatRepository {
   final FirebaseDatabase _db = FirebaseDatabase.instance;
 
@@ -46,8 +47,8 @@ class ChatRepository {
     final chatSnapshot = await _db.ref('chats/$chatId').get();
     if (!chatSnapshot.exists) return;
     
+    final chatData = chatSnapshot.value as Map<dynamic, dynamic>;
     if (!force) {
-      final chatData = chatSnapshot.value as Map<dynamic, dynamic>;
       if (chatData['isClosed'] == true) return;
     }
 
@@ -62,11 +63,21 @@ class ChatRepository {
 
     await messageRef.set(message.toMap());
 
-    // Update the lastMessage and updatedAt on the conversation
     await _db.ref('chats/$chatId').update({
       'lastMessage': content,
       'updatedAt': ServerValue.timestamp,
     });
+
+    // Send a notification to the other user
+    final targetId = chatData['hostId'] == senderId ? chatData['guestId'] : chatData['hostId'];
+    if (targetId != null && targetId.toString().isNotEmpty) {
+      final senderName = FirebaseAuth.instance.currentUser?.displayName ?? 'A user';
+      await NotificationService.sendMessageNotification(
+        targetUserId: targetId.toString(),
+        senderName: senderName,
+        messagePreview: content,
+      );
+    }
   }
 
   /// Opens a chat so messages can be sent

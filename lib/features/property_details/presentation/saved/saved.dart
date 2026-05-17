@@ -59,46 +59,49 @@ class _SavedRoomsPageState extends State<Saved> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(color: c.background),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          // Back Button
-
-          // Title
-          Text(
-            AppStrings.savedRoomsTitle,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: c.textMain,
-              letterSpacing: -0.5,
+          // Title centered
+          Align(
+            alignment: Alignment.center,
+            child: Text(
+              AppStrings.savedRoomsTitle,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: c.textMain,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
 
-          // More Options Button
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: c.card,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: c.border),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: IconButton(
-              onPressed: () {
-                // Show more options
-                _showMoreOptions(c);
-              },
-              icon: const Icon(Icons.more_horiz, size: 24),
-              padding: EdgeInsets.zero,
-              color: c.textMain,
+          // More Options Button on the right
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: c.card,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: c.border),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                onPressed: () {
+                  _showMoreOptions(c);
+                },
+                icon: const Icon(Icons.more_horiz, size: 24),
+                padding: EdgeInsets.zero,
+                color: c.textMain,
+              ),
             ),
           ),
         ],
