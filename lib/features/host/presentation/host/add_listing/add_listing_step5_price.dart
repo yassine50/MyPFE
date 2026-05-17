@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
+import 'package:pfe/core/utils/currency_formatter.dart';
 import 'add_listing_controller.dart';
 import 'add_listing_step6_rules.dart';
 
@@ -106,8 +108,8 @@ class _AddListingStep5PriceScreenState
                             ),
                           ),
                           Text(
-                            'lei',
-                            style: TextStyle(
+                            CurrencyFormatter.symbol,
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 20,
                               color: c.textSecondary,
                             ),
@@ -156,8 +158,8 @@ class _AddListingStep5PriceScreenState
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Places like yours in your area usually range from 200 lei to 350 lei per night.',
-                                style: TextStyle(
+                                'Places like yours in your area usually range from ${CurrencyFormatter.format(200)} to ${CurrencyFormatter.format(350)} per month.',
+                                style: GoogleFonts.plusJakartaSans(
                                   fontSize: 14,
                                   color: c.textSecondary,
                                   height: 1.4,

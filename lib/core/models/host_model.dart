@@ -3,7 +3,8 @@ import 'room_listing_model.dart';
 
 class Host extends User {
   final List<RoomListing> listings;
-  final double rating;
+  // Use hostRating (double) to avoid conflict with User.rating (String)
+  final double hostRating;
 
   Host({
     required super.id,
@@ -13,7 +14,7 @@ class Host extends User {
     required super.profileImage,
     required super.createdAt,
     this.listings = const [],
-    required this.rating,
+    required this.hostRating,
   });
 
   factory Host.fromJson(Map<String, dynamic> json) {
@@ -30,7 +31,7 @@ class Host extends User {
               ?.map((e) => RoomListing.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
+      hostRating: (json['rating'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -39,7 +40,7 @@ class Host extends User {
     return {
       ...super.toJson(),
       'listings': listings.map((e) => e.toJson()).toList(),
-      'rating': rating,
+      'rating': hostRating,
     };
   }
 }

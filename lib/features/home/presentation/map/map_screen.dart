@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:pfe/core/models/property_model.dart';
-import 'package:pfe/core/theme/app_colors.dart';
 import 'package:pfe/core/theme/app_theme.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/widgets/search_bar/search_bar.dart';
 import 'package:pfe/features/property_details/presentation/detail_screen/detail_screen.dart';
+import 'package:pfe/core/utils/currency_formatter.dart';
 
 class MapScreen extends StatefulWidget {
   final List<PropertyModel> properties;
@@ -32,9 +31,12 @@ class _MapScreenState extends State<MapScreen> {
 
     return Scaffold(
       backgroundColor: c.background,
-      body: Stack(
-        children: [
-          // 1. Map Layer
+      body: ValueListenableBuilder<String>(
+        valueListenable: CurrencyFormatter.symbolNotifier,
+        builder: (context, symbol, child) {
+          return Stack(
+            children: [
+              // 1. Map Layer
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
@@ -86,7 +88,7 @@ class _MapScreenState extends State<MapScreen> {
                                   ]
                                 ),
                                 child: Text(
-                                  prop.price.split(' ')[0], // Get just the number/currency part
+                                  prop.displayPrice.replaceAll(RegExp(r'\s*/\s*month|\s*/\s*mo'), '').split(' ').firstWhere((e) => e.isNotEmpty, orElse: () => ''),
                                   style: TextStyle(
                                     color: isSelected ? Colors.white : Colors.black87,
                                     fontWeight: FontWeight.bold,
@@ -263,27 +265,28 @@ class _MapScreenState extends State<MapScreen> {
               child: _PropertyPreviewCard(property: _selectedProperty!, c: c),
             ),
             
-          if (_selectedProperty == null)
-            Positioned(
-              bottom: 24,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: c.textMain,
-                    foregroundColor: c.card,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            if (_selectedProperty == null)
+              Positioned(
+                bottom: 24,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: c.textMain,
+                      foregroundColor: c.card,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.format_list_bulleted, size: 18),
+                    label: const Text('List View', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.format_list_bulleted, size: 18),
-                  label: const Text('List View', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
-            ),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 }
@@ -458,7 +461,7 @@ class _PropertyPreviewCard extends StatelessWidget {
                   children: [
                     RichText(
                       text: TextSpan(
-                        text: property.price,
+                        text: property.displayPrice.replaceAll(RegExp(r'\s*/\s*month|\s*/\s*mo'), ''),
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: c.textMain),
                         children: [
                           TextSpan(

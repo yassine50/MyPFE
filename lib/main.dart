@@ -29,6 +29,7 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<SelectLangBloc, SelectLangState>(
         builder: (context, state) {
           return MaterialApp(
+            key: ValueKey(state),
             debugShowCheckedModeBanner: false,
             themeMode: ThemeMode.light,
             theme: ThemeData(

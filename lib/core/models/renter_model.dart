@@ -4,7 +4,8 @@ import 'review_model.dart';
 
 class Renter extends User {
   final List<Booking> bookings;
-  final List<Review> reviews;
+  // Use renterReviews to avoid conflict with User.reviews (List<Map<String,dynamic>>)
+  final List<Review> renterReviews;
 
   Renter({
     required super.id,
@@ -14,7 +15,7 @@ class Renter extends User {
     required super.profileImage,
     required super.createdAt,
     this.bookings = const [],
-    this.reviews = const [],
+    this.renterReviews = const [],
   });
 
   factory Renter.fromJson(Map<String, dynamic> json) {
@@ -31,7 +32,7 @@ class Renter extends User {
               ?.map((e) => Booking.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      reviews: (json['reviews'] as List<dynamic>?)
+      renterReviews: (json['reviews'] as List<dynamic>?)
               ?.map((e) => Review.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -43,7 +44,7 @@ class Renter extends User {
     return {
       ...super.toJson(),
       'bookings': bookings.map((e) => e.toJson()).toList(),
-      'reviews': reviews.map((e) => e.toJson()).toList(),
+      'reviews': renterReviews.map((e) => e.toJson()).toList(),
     };
   }
 }

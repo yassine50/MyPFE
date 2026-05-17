@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pfe/core/localization/app_strings.dart';
-import 'package:pfe/core/theme/app_colors.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/features/host/presentation/host/invitation_details/invitation_details.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -218,7 +217,7 @@ class _MyBookingsPageState extends State<MyBooking> {
 
                         final status = b['status']?.toString() ?? 'pending';
                         if (_selectedTab == 0) return status == 'pending';
-                        if (_selectedTab == 1) return status == 'accepted';
+                        if (_selectedTab == 1) return status == 'accepted' || status == 'confirmed';
                         if (_selectedTab == 2) return status == 'rejected' || status == 'completed';
                         return false;
                       }).toList();
@@ -322,7 +321,6 @@ class _MyBookingsPageState extends State<MyBooking> {
     required String propertyImage,
     required String propertyId,
     required String guestId,
-    bool isUrgent = false,
   }) {
     return GestureDetector(
       onTap: () {
@@ -551,7 +549,7 @@ class _MyBookingsPageState extends State<MyBooking> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: status == 'accepted' ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                  color: (status == 'accepted' || status == 'confirmed') ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
@@ -560,7 +558,7 @@ class _MyBookingsPageState extends State<MyBooking> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: status == 'accepted' ? Colors.green : Colors.red,
+                      color: (status == 'accepted' || status == 'confirmed') ? Colors.green : Colors.red,
                     ),
                   ),
                 ),

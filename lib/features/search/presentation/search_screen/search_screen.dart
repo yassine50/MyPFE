@@ -5,6 +5,7 @@ import 'package:pfe/core/widgets/search_bar/search_bar.dart';
 import 'package:pfe/core/widgets/header/header.dart';
 import 'package:pfe/core/models/property_model.dart';
 import 'package:pfe/core/utils/currency_formatter.dart';
+import 'package:pfe/features/home/presentation/map/map_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final List<PropertyModel>? properties;
@@ -84,7 +85,16 @@ class _SearchScreenState extends State<SearchScreen> {
       /// 🔹 MAP BUTTON (FLOATING)
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.white,
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MapScreen(
+                properties: widget.properties ?? [],
+              ),
+            ),
+          );
+        },
         icon: const Icon(Icons.map),
         label: const Text('Map'),
       ),

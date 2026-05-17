@@ -96,7 +96,78 @@ class Amenetis extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 12),
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  builder: (context) {
+                    return DraggableScrollableSheet(
+                      expand: false,
+                      initialChildSize: 0.6,
+                      minChildSize: 0.4,
+                      maxChildSize: 0.9,
+                      builder: (context, scrollController) {
+                        return Container(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    "All Amenities",
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.close),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Expanded(
+                                child: ListView.builder(
+                                  controller: scrollController,
+                                  itemCount: amenities.length,
+                                  itemBuilder: (context, index) {
+                                    final amenity = amenities[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            _getIconForAmenity(amenity),
+                                            color: Colors.black87,
+                                            size: 28,
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Text(
+                                            _getLabelForAmenity(amenity),
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 48),
                 shape: RoundedRectangleBorder(

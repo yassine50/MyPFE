@@ -3,6 +3,8 @@ import 'package:pfe/core/theme/app_colors.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pfe/core/models/message_model.dart' as model;
+import 'package:pfe/core/models/property_model.dart';
+import 'package:pfe/features/property_details/presentation/detail_screen/detail_screen.dart' as pfe_detail;
 import 'package:pfe/features/chat/data/repositories/chat_repository.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -14,6 +16,7 @@ class ChatScreen extends StatefulWidget {
   final String otherUserAvatar;
   final String propertyTitle;
   final String propertyImage;
+  final String propertyId;
   final bool isClosed;
 
   const ChatScreen({
@@ -23,6 +26,7 @@ class ChatScreen extends StatefulWidget {
     required this.otherUserAvatar,
     required this.propertyTitle,
     required this.propertyImage,
+    required this.propertyId,
     this.isClosed = false,
   });
 
@@ -166,20 +170,7 @@ class _ChatScreenState extends State<ChatScreen>
                         ],
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.call,
-                        size: 20,
-                        color: Color(0xFF136DEC),
-                      ),
-                      style: IconButton.styleFrom(
-                        backgroundColor: c.buttonBg,
-                        shape: const CircleBorder(),
-                        padding: const EdgeInsets.all(8),
-                        minimumSize: const Size(40, 40),
-                      ),
-                    ),
+                    // Call icon removed as requested
                   ],
                 ),
               ),
@@ -234,7 +225,29 @@ class _ChatScreenState extends State<ChatScreen>
                       ),
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () async {
+                        // Open Property Details (preview of the request property)
+                        if (widget.propertyId.isNotEmpty) {
+                          try {
+                            final snapshot = await FirebaseDatabase.instance.ref('properties/${widget.propertyId}').get();
+                            if (snapshot.exists && context.mounted) {
+                              final data = Map<String, dynamic>.from(snapshot.value as Map);
+                              // We need to import property_model in chat.dart for this to work
+                              final property = PropertyModel.fromJson(data, widget.propertyId);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => pfe_detail.DetailScreen(property: property, isReadOnly: true),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not load property details')));
+                            }
+                          }
+                        }
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -258,62 +271,7 @@ class _ChatScreenState extends State<ChatScreen>
                 ),
               ),
 
-              // Move-in Request Banner
-              Container(
-                color: c.segmentBg,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'READY TO MOVE IN?',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryBlue,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Send a request to finalize.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: c.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.key, size: 16),
-                      label: const Text('Move-in Request'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryBlue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Move-in Request Banner removed as requested
 
               // Messages Area
               Expanded(

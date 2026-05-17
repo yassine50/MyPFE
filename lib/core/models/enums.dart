@@ -1,6 +1,6 @@
 enum ListingStatus { active, pending, rented, inactive }
 
-enum BookingStatus { pending, accepted, rejected, cancelled, completed }
+enum BookingStatus { pending, accepted, confirmed, rejected, cancelled, completed }
 
 enum PaymentMethod { card, cash, bankTransfer }
 

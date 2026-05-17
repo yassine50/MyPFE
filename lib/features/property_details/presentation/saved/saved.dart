@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:pfe/core/models/property_model.dart';
 import 'package:pfe/core/utils/currency_formatter.dart';
+import 'package:pfe/features/property_details/presentation/detail_screen/detail_screen.dart' as pfe_detail;
 
 class Saved extends StatefulWidget {
   const Saved({super.key});
@@ -237,9 +238,19 @@ class _SavedRoomsPageState extends State<Saved> {
   Widget _buildRoomCard(PropertyModel room, AppColorScheme c) {
     final imageUrl = room.images.isNotEmpty ? room.images.first : 'https://placehold.co/400x400/png';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    return GestureDetector(
+      onTap: () {
+        // We need to import detail_screen in saved.dart
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => pfe_detail.DetailScreen(property: room),
+          ),
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
         // Image with overlays
         AspectRatio(
           aspectRatio: 4 / 3,
@@ -423,6 +434,7 @@ class _SavedRoomsPageState extends State<Saved> {
           ),
         ),
       ],
+    ),
     );
   }
 

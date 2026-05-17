@@ -1,7 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/core/models/property_model.dart';
+import 'package:pfe/core/utils/currency_formatter.dart';
+import 'package:pfe/features/property_details/presentation/detail_screen/detail_screen.dart';
+import 'package:pfe/features/home/presentation/map/map_screen.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 /// Manage Listing screen shown after a listing is published
 class ManageListingScreen extends StatefulWidget {
@@ -72,42 +77,71 @@ class _ManageListingScreenState extends State<ManageListingScreen> {
                     // ── Performance Stats ─────────────────────────────
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Performance (Last 7 Days)',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: c.textMain,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _StatCard(
-                                  icon: Icons.visibility_outlined,
-                                  label: 'Views',
-                                  value: '0',
-                                  trend: '-',
-                                  c: c,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _StatCard(
-                                  icon: Icons.bookmark_outline,
-                                  label: 'Requests',
-                                  value: '0',
-                                  trend: '-',
-                                  c: c,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      child: StreamBuilder<DatabaseEvent>(
+                        stream: FirebaseDatabase.instance.ref('bookings').onValue,
+                        builder: (context, bookingSnap) {
+                          int requestsCount = 0;
+                          if (bookingSnap.hasData && bookingSnap.data!.snapshot.exists) {
+                            final raw = bookingSnap.data!.snapshot.value as Map;
+                            raw.forEach((_, val) {
+                              final b = Map<String, dynamic>.from(val as Map);
+                              if (b['propertyId']?.toString() == widget.property.id) {
+                                requestsCount++;
+                              }
+                            });
+                          }
+                          return StreamBuilder<DatabaseEvent>(
+                            stream: FirebaseDatabase.instance.ref('favorites').onValue,
+                            builder: (context, favSnap) {
+                              int savesCount = 0;
+                              if (favSnap.hasData && favSnap.data!.snapshot.exists) {
+                                final raw = favSnap.data!.snapshot.value as Map;
+                                raw.forEach((_, userFavs) {
+                                  if (userFavs is Map && userFavs.containsKey(widget.property.id)) {
+                                    savesCount++;
+                                  }
+                                });
+                              }
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Performance',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: c.textMain,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _StatCard(
+                                          icon: Icons.bookmark_outline,
+                                          label: 'Saves',
+                                          value: '$savesCount',
+                                          trend: savesCount > 0 ? '↑' : '—',
+                                          c: c,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _StatCard(
+                                          icon: Icons.send_outlined,
+                                          label: 'Requests',
+                                          value: '$requestsCount',
+                                          trend: requestsCount > 0 ? '↑' : '—',
+                                          c: c,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
                       ),
                     ),
 
@@ -251,7 +285,16 @@ class _ManageListingScreenState extends State<ManageListingScreen> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                       child: OutlinedButton.icon(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MapScreen(
+                                properties: [widget.property],
+                              ),
+                            ),
+                          );
+                        },
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 52),
                           shape: RoundedRectangleBorder(
@@ -413,8 +456,8 @@ class _ListingPreviewCard extends StatelessWidget {
                         const SizedBox(height: 2),
                         RichText(
                           text: TextSpan(
-                            text: property.price.isNotEmpty ? property.price : '0 lei',
-                            style: TextStyle(
+                            text: property.price.isNotEmpty ? property.price : CurrencyFormatter.format(0),
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: c.textMain,
@@ -434,7 +477,16 @@ class _ListingPreviewCard extends StatelessWidget {
                       ],
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailScreen(
+                              property: property,
+                            ),
+                          ),
+                        );
+                      },
                       style: TextButton.styleFrom(
                         backgroundColor: c.primary.withValues(alpha: 0.1),
                         foregroundColor: c.primary,

@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pfe/features/onboarding/presentation/select_language/bloc/select_lang_bloc.dart';
 
 class LanguagePage extends StatefulWidget {
   const LanguagePage({super.key});
@@ -53,9 +55,18 @@ class _LanguagePageState extends State<LanguagePage> {
     if (uid == null) return;
     setState(() => _isSaving = true);
     try {
+      // 1. Persist to Firebase
       await FirebaseDatabase.instance.ref('users/$uid/language').set(_selected);
-      final langName = _languages.firstWhere((l) => l['code'] == _selected)['name']!;
+
+      // 2. Get the index of the selected language in the list
+      final langIndex = _languages.indexWhere((l) => l['code'] == _selected);
+      final langName = _languages[langIndex]['name']!;
+
       if (!mounted) return;
+
+      // 3. Fire the BLoC event — this triggers a full MaterialApp rebuild with the new locale
+      context.read<SelectLangBloc>().add(SelectLanguageEvent(langIndex));
+
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

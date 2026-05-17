@@ -13,6 +13,8 @@ class User {
   final double budgetMin;
   final double budgetMax;
   final String moveInDate;
+  final String rating;
+  final List<Map<String, dynamic>> reviews;
 
   // User preferences (persisted in Firebase)
   final String language;
@@ -34,6 +36,8 @@ class User {
     this.budgetMin = 300,
     this.budgetMax = 800,
     this.moveInDate = '',
+    this.rating = '0.0',
+    this.reviews = const [],
     this.language = 'en',
     this.currency = 'EUR',
     this.pushNotifications = true,
@@ -57,6 +61,13 @@ class User {
       budgetMin: (json['budgetMin'] as num?)?.toDouble() ?? 300,
       budgetMax: (json['budgetMax'] as num?)?.toDouble() ?? 800,
       moveInDate: json['moveInDate'] as String? ?? '',
+      rating: json['rating']?.toString() ?? '0.0',
+      reviews: () {
+        final data = json['reviews'];
+        if (data is List) return data.where((e) => e != null).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        if (data is Map) return data.values.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        return <Map<String, dynamic>>[];
+      }(),
       language: json['language'] as String? ?? 'en',
       currency: json['currency'] as String? ?? 'EUR',
       pushNotifications: json['pushNotifications'] as bool? ?? true,
@@ -79,6 +90,8 @@ class User {
       'budgetMin': budgetMin,
       'budgetMax': budgetMax,
       'moveInDate': moveInDate,
+      'rating': rating,
+      'reviews': reviews,
       'language': language,
       'currency': currency,
       'pushNotifications': pushNotifications,

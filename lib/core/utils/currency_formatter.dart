@@ -17,6 +17,18 @@ class CurrencyFormatter {
     'DKK': 'kr',
   };
 
+  /// Approximate fixed exchange rates relative to EUR (1 EUR = X currency)
+  static const Map<String, double> _rates = {
+    'EUR': 1.0,
+    'RON': 4.97,
+    'USD': 1.08,
+    'GBP': 0.86,
+    'CHF': 0.97,
+    'SEK': 11.50,
+    'NOK': 11.70,
+    'DKK': 7.46,
+  };
+
   static void init() {
     FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user != null) {
@@ -35,12 +47,28 @@ class CurrencyFormatter {
   }
 
   static String get symbol => symbolNotifier.value;
-  
-  static String format(num amount) {
-    return '$symbol${amount.toStringAsFixed(0)}';
+  static String get code => codeNotifier.value;
+
+  /// Convert a EUR-based amount to the currently selected currency
+  static double convert(num eurAmount) {
+    final rate = _rates[codeNotifier.value] ?? 1.0;
+    return eurAmount * rate;
   }
 
-  static String formatWithDecimals(num amount) {
-    return '$symbol${amount.toStringAsFixed(2)}';
+  static String format(num eurAmount) {
+    final converted = convert(eurAmount);
+    // For 'lei' place symbol after the number
+    if (codeNotifier.value == 'RON') {
+      return '${converted.toStringAsFixed(0)} lei';
+    }
+    return '$symbol${converted.toStringAsFixed(0)}';
+  }
+
+  static String formatWithDecimals(num eurAmount) {
+    final converted = convert(eurAmount);
+    if (codeNotifier.value == 'RON') {
+      return '${converted.toStringAsFixed(2)} lei';
+    }
+    return '$symbol${converted.toStringAsFixed(2)}';
   }
 }

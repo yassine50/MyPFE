@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pfe/features/home/data/repositories/property_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pfe/core/models/property_model.dart';
 import 'home_event.dart';
 import 'home_state.dart';
 

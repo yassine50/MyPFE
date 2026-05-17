@@ -188,14 +188,16 @@ class _DashbordState extends State<Dashbord> {
             if (b['guestId']?.toString() == _uid) return;
             total++;
             final status = b['status']?.toString() ?? '';
-            if (status == 'accepted') {
+            if (status == 'accepted' || status == 'confirmed') {
               accepted++;
-              final ts = b['createdAt'];
-              if (ts != null) {
-                final date = ts is int
-                    ? DateTime.fromMillisecondsSinceEpoch(ts)
-                    : DateTime.tryParse(ts.toString());
-                if (date != null && date.month == now.month && date.year == now.year) {
+            }
+            final ts = b['createdAt'];
+            if (ts != null) {
+              final date = ts is int
+                  ? DateTime.fromMillisecondsSinceEpoch(ts)
+                  : DateTime.tryParse(ts.toString());
+              if (date != null && date.month == now.month && date.year == now.year) {
+                if (status == 'accepted' || status == 'confirmed') {
                   earnings += (b['totalPrice'] as num?)?.toDouble() ?? 0;
                 }
               }
@@ -310,7 +312,7 @@ class _DashbordState extends State<Dashbord> {
             if (!_hostProperties.containsKey(pid)) return;
             if (b['guestId']?.toString() == _uid) return;
             final status = b['status']?.toString() ?? '';
-            if (status == 'accepted' || status == 'pending') {
+            if (status == 'accepted' || status == 'confirmed' || status == 'pending') {
               active.add({'_key': key, ...b});
             }
           });
@@ -360,7 +362,7 @@ class _DashbordState extends State<Dashbord> {
                   final title = property?.title ?? 'Property';
                   final imageUrl = property?.images.isNotEmpty == true ? property!.images.first : '';
                   final status = b['status']?.toString() ?? 'pending';
-                  final statusColor = status == 'accepted' ? Colors.green : Colors.orange;
+                  final statusColor = (status == 'accepted' || status == 'confirmed') ? Colors.green : Colors.orange;
 
                   // Parse dates
                   final moveInStr = b['moveInDate']?.toString() ?? '';

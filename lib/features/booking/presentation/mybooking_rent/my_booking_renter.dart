@@ -7,6 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pfe/features/home/data/repositories/property_repository.dart';
 import 'package:pfe/core/models/property_model.dart';
 import 'package:intl/intl.dart';
+import 'package:pfe/features/booking/presentation/active_contract/active_contract_screen.dart';
+import 'package:pfe/features/booking/presentation/payment/payment_screen.dart';
 
 
 class MyBookingRenter extends StatefulWidget {
@@ -97,7 +99,7 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                         // 0 = upcoming (pending/accepted), 1 = past (completed), 2 = cancelled (rejected/cancelled)
                         final filteredBookings = fetchedBookings.where((b) {
                           final status = b['status']?.toString() ?? 'pending';
-                          if (_selectedSegmentIndex == 0) return status == 'pending' || status == 'accepted';
+                          if (_selectedSegmentIndex == 0) return status == 'pending' || status == 'accepted' || status == 'confirmed' || status == 'active';
                           if (_selectedSegmentIndex == 1) return status == 'completed';
                           if (_selectedSegmentIndex == 2) return status == 'rejected' || status == 'cancelled';
                           return false;
@@ -157,11 +159,17 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
                                 statusIcon = Icons.hourglass_top;
                                 statusText = 'PENDING';
                               } else if (status == 'accepted') {
+                                statusColor = Colors.orange;
+                                statusIcon = Icons.payment;
+                                statusText = 'ACTION REQUIRED: PAY';
+                                primaryAction = 'pay';
+                                primaryText = '💳 Pay Now';
+                              } else if (status == 'confirmed' || status == 'active') {
                                 statusColor = Colors.green;
                                 statusIcon = Icons.check_circle;
                                 statusText = 'CONFIRMED';
-                                primaryAction = 'message';
-                                primaryText = AppStrings.btnMessageHost;
+                                primaryAction = 'contract';
+                                primaryText = '📄 View Contract';
                               } else if (status == 'rejected' || status == 'cancelled') {
                                 statusColor = Colors.red;
                                 statusIcon = Icons.cancel;
@@ -783,6 +791,27 @@ class _MyBookingsPageState extends State<MyBookingRenter> {
     switch (action) {
       case 'message':
         _messageHost(booking);
+        break;
+      case 'pay':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PaymentScreen(
+              booking: Map<String, dynamic>.from(booking['rawBooking'] as Map),
+            ),
+          ),
+        );
+        break;
+      case 'contract':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ActiveContractScreen(
+              booking: Map<String, dynamic>.from(booking['rawBooking'] as Map),
+              property: booking['property'] as PropertyModel?,
+            ),
+          ),
+        );
         break;
       case 'details':
         _viewBookingDetails(booking);

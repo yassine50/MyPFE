@@ -3,6 +3,7 @@ import 'package:pfe/core/localization/app_strings.dart';
 import 'package:pfe/core/theme/app_colors.dart';
 import 'package:pfe/core/widgets/google_nav_bar/navbar.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:pfe/features/auth/presentation/login/login.dart';
 
 class RoleSelect extends StatelessWidget {
   const RoleSelect({super.key});
@@ -23,7 +24,15 @@ class RoleSelect extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const BackButton(),
-                    TextButton(onPressed: () {}, child: const Text("Log in")),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        );
+                      },
+                      child: const Text("Log in"),
+                    ),
                   ],
                 ),
 

@@ -69,7 +69,9 @@ class PropertyModel {
 
     List<Map<String, dynamic>> parseReviews(dynamic data) {
       if (data is List) {
-        return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        return data.where((e) => e != null).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      } else if (data is Map) {
+        return data.values.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       }
       return [];
     }

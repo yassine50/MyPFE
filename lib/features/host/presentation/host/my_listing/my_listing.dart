@@ -6,6 +6,7 @@ import 'package:pfe/features/property_details/presentation/detail_screen/detail_
 import 'package:pfe/features/host/presentation/host/add_listing/manage_listing.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:pfe/features/auth/presentation/login/login.dart';
 
 class MyListing extends StatefulWidget {
   const MyListing({super.key});
@@ -22,7 +23,39 @@ class _MyListingState extends State<MyListing> {
     if (currentUser == null) {
       return Scaffold(
         backgroundColor: c.background,
-        body: Center(child: Text('Please log in')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Please log in to manage listings',
+                  style: TextStyle(color: c.textSecondary, fontSize: 16)),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: c.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Log In',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     }
 

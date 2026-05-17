@@ -8,26 +8,64 @@ import 'package:pfe/features/auth/data/services/auth_service.dart';
 import 'package:pfe/features/onboarding/presentation/splash_screen/splash_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:pfe/core/models/user_model.dart' as app_user;
 import 'package:intl/intl.dart';
+import 'package:pfe/features/auth/presentation/login/login.dart' as pfe_login;
+import 'package:pfe/core/models/user_model.dart' as app_user;
 
 class Profile extends StatelessWidget {
-  const Profile({super.key});
+  /// If provided, shows this user's public profile. Otherwise shows the logged-in user's own profile.
+  final String? viewedUserId;
+  const Profile({super.key, this.viewedUserId});
 
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    // The uid we are DISPLAYING
+    final displayUid = viewedUserId ?? currentUid;
+    final isOwnProfile = viewedUserId == null || viewedUserId == currentUid;
 
     return Scaffold(
       backgroundColor: c.background,
       body: SafeArea(
-        child: uid == null
+        child: displayUid == null
             ? Center(
-                child: Text('Not logged in',
-                    style: GoogleFonts.plusJakartaSans(color: c.textSecondary)))
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('You are not logged in',
+                        style: GoogleFonts.plusJakartaSans(
+                            color: c.textSecondary, fontSize: 16)),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const pfe_login.LoginScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: c.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Log In',
+                        style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              )
             : StreamBuilder<DatabaseEvent>(
-                stream: FirebaseDatabase.instance.ref('users/$uid').onValue,
+                stream: FirebaseDatabase.instance.ref('users/$displayUid').onValue,
                 builder: (context, snapshot) {
                   app_user.User? user;
                   if (snapshot.hasData && snapshot.data!.snapshot.exists) {
@@ -39,7 +77,7 @@ class Profile extends StatelessWidget {
                     return Center(
                         child: CircularProgressIndicator(color: c.primary));
                   }
-                  return _ProfileContent(user: user, uid: uid);
+                  return _ProfileContent(user: user, uid: displayUid, isOwnProfile: isOwnProfile, currentUserId: currentUid);
                 },
               ),
       ),
@@ -51,7 +89,9 @@ class Profile extends StatelessWidget {
 class _ProfileContent extends StatelessWidget {
   final app_user.User? user;
   final String uid;
-  const _ProfileContent({required this.user, required this.uid});
+  final bool isOwnProfile;
+  final String? currentUserId;
+  const _ProfileContent({required this.user, required this.uid, this.isOwnProfile = true, this.currentUserId});
 
   // ─── Language code → display name ─────────────────────────────────────────
   static const _langMap = {
@@ -78,8 +118,10 @@ class _ProfileContent extends StatelessWidget {
           _buildBioText(c),
           _buildPersonalInfoGrid(c),
           _buildDivider(c),
-          _buildSettingsList(c, context),
-          _buildActionButtons(c, context),
+          if (isOwnProfile) _buildSettingsList(c, context),
+          if (isOwnProfile) _buildDivider(c),
+          _buildReviewsSection(c, context),
+          if (isOwnProfile) _buildActionButtons(c, context),
         ],
       ),
     );
@@ -212,25 +254,35 @@ class _ProfileContent extends StatelessWidget {
       stream: FirebaseDatabase.instance.ref('bookings').onValue,
       builder: (context, snap) {
         int stays = 0;
+        int totalBookings = 0;
+        int acceptedBookings = 0;
         if (snap.hasData && snap.data!.snapshot.exists) {
           final raw = snap.data!.snapshot.value as Map;
           raw.forEach((_, val) {
             final b = Map<String, dynamic>.from(val as Map);
-            if ((b['userId'] == uid || b['tenantId'] == uid) &&
-                (b['status'] == 'accepted' || b['status'] == 'confirmed')) {
-              stays++;
+            // Count stays where this user is the guest
+            if (b['guestId'] == uid) {
+              totalBookings++;
+              final status = b['status']?.toString() ?? '';
+              if (status == 'accepted' || status == 'confirmed' || status == 'completed') {
+                stays++;
+                acceptedBookings++;
+              }
             }
           });
         }
+        final responseRate = totalBookings > 0
+            ? '${(acceptedBookings / totalBookings * 100).round()}%'
+            : '—';
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
               _statCell('$stays', AppStrings.stays, c),
               const SizedBox(width: 12),
-              _statCell('4.9 ★', AppStrings.rating, c),
+              _statCell('${user?.rating ?? '0.0'} ★', AppStrings.rating, c),
               const SizedBox(width: 12),
-              _statCell('100%', AppStrings.response, c),
+              _statCell(responseRate, AppStrings.response, c),
             ],
           ),
         );
@@ -481,6 +533,157 @@ class _ProfileContent extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  // ─── Reviews Section ───────────────────────────────────────────────────────
+  Widget _buildReviewsSection(AppColorScheme c, BuildContext context) {
+    final reviews = user?.reviews ?? [];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Reviews', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: c.textMain)),
+              if (!isOwnProfile)
+                TextButton(
+                  onPressed: () => _showAddProfileReviewDialog(context),
+                  child: Text('Write a Review', style: GoogleFonts.plusJakartaSans(color: c.primary, fontWeight: FontWeight.w600)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (reviews.isEmpty)
+            Center(
+              child: Text('No reviews yet.', style: GoogleFonts.plusJakartaSans(color: c.textSecondary, fontStyle: FontStyle.italic)),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: reviews.length,
+              itemBuilder: (context, index) {
+                final review = reviews[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: c.card,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: c.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(review['name'] ?? 'Anonymous', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: c.textMain)),
+                          Row(
+                            children: [
+                              const Icon(Icons.star, size: 14, color: Colors.amber),
+                              const SizedBox(width: 4),
+                              Text('${review['rating'] ?? 5.0}', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: c.textMain)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(review['date'] ?? '', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: c.textSecondary)),
+                      const SizedBox(height: 8),
+                      Text(review['text'] ?? '', style: GoogleFonts.plusJakartaSans(fontSize: 14, color: c.textSecondary)),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showAddProfileReviewDialog(BuildContext context) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to write a review')));
+      return;
+    }
+
+    final commentController = TextEditingController();
+    double rating = 5.0;
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: context.appColors.card,
+              title: const Text('Review this Profile'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return IconButton(
+                        icon: Icon(index < rating ? Icons.star : Icons.star_border, color: Colors.amber),
+                        onPressed: () => setState(() => rating = index + 1.0),
+                      );
+                    }),
+                  ),
+                  TextField(
+                    controller: commentController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(hintText: 'Share your experience...', border: OutlineInputBorder()),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (commentController.text.trim().isEmpty) return;
+                    
+                    String authorName = 'Anonymous';
+                    try {
+                      final userSnap = await FirebaseDatabase.instance.ref('users/${currentUser.uid}').get();
+                      if (userSnap.exists) {
+                        final data = Map<String, dynamic>.from(userSnap.value as Map);
+                        authorName = data['fullName'] ?? 'Anonymous';
+                      }
+                    } catch (_) {}
+
+                    final newReview = {
+                      'userId': currentUser.uid,
+                      'name': authorName,
+                      'text': commentController.text.trim(),
+                      'rating': rating,
+                      'date': DateTime.now().toString().substring(0, 10),
+                    };
+
+                    await FirebaseDatabase.instance.ref('users/${user?.id}/reviews').push().set(newReview);
+                    
+                    if (context.mounted) {
+                      setState(() {
+                        if (user != null) {
+                          user!.reviews.add(newReview);
+                        }
+                      });
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Review added successfully!')));
+                    }
+                  },
+                  child: const Text('Submit'),
+                ),
+              ],
+            );
+          }
+        );
+      },
     );
   }
 }

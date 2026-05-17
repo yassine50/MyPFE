@@ -142,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Align(
           alignment: Alignment.centerRight,
           child: TextButton(
-            onPressed: () {},
+            onPressed: () => _handleForgotPassword(context),
             child: Text(
               AppStrings.forgotPassword,
               style: TextStyle(color: c.primary),
@@ -301,6 +301,32 @@ class _LoginScreenState extends State<LoginScreen> {
     } finally {
       if (mounted) {
         setState(() => isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleForgotPassword(BuildContext context) async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your email address first')),
+      );
+      return;
+    }
+
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await _authService.sendPasswordResetEmail(email);
+      if (mounted) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Password reset email sent. Check your inbox.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
       }
     }
   }
