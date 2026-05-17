@@ -18,7 +18,7 @@ class Dashbord extends StatefulWidget {
 }
 
 class _DashbordState extends State<Dashbord> {
-  Map<String, PropertyModel> _hostProperties = {};
+  final Map<String, PropertyModel> _hostProperties = {};
   bool _loadingProperties = true;
   String _hostPhotoUrl = '';
   String _hostFirstName = 'Host';

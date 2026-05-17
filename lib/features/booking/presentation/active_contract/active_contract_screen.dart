@@ -154,7 +154,7 @@ class ActiveContractScreen extends StatelessWidget {
                               width: 100,
                               height: 100,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
+                              errorBuilder: (_, e, s) => Container(
                                 width: 100, height: 100, color: c.statsBg,
                                 child: Icon(Icons.home, color: c.textSecondary, size: 36),
                               ),
@@ -258,7 +258,7 @@ class ActiveContractScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     ValueListenableBuilder<String>(
                       valueListenable: CurrencyFormatter.symbolNotifier,
-                      builder: (context, _, __) {
+                      builder: (context, _, s) {
                         return Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -425,9 +425,9 @@ class _CountdownCard extends StatelessWidget {
             children: [
               _TimeUnit(value: '$days', label: 'days', color: color),
               _timeSep(color),
-              _TimeUnit(value: '${hours.toString().padLeft(2, '0')}', label: 'hours', color: color),
+              _TimeUnit(value: hours.toString().padLeft(2, '0'), label: 'hours', color: color),
               _timeSep(color),
-              _TimeUnit(value: '${mins.toString().padLeft(2, '0')}', label: 'min', color: color),
+              _TimeUnit(value: mins.toString().padLeft(2, '0'), label: 'min', color: color),
             ],
           ),
         ],

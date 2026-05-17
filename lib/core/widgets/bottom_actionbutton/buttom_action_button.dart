@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/features/booking/presentation/send_request/send_request.dart';
+import 'package:pfe/features/host/presentation/host/add_listing/manage_listing.dart';
 import 'package:pfe/core/models/property_model.dart';
 import 'package:pfe/core/utils/currency_formatter.dart' as pfe_currency;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,6 +13,7 @@ class ButtomActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.appColors;
     return Positioned(
       bottom: 0,
       left: 0,
@@ -64,6 +67,26 @@ class ButtomActionButton extends StatelessWidget {
                       break;
                     }
                   }
+                }
+
+                bool isOwner = property.hostId == FirebaseAuth.instance.currentUser?.uid;
+                
+                if (isOwner) {
+                  return ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ManageListingScreen(property: property)),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: c.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Manage Listing', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  );
                 }
 
                 return ElevatedButton(

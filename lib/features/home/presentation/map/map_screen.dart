@@ -42,7 +42,7 @@ class _MapScreenState extends State<MapScreen> {
             options: MapOptions(
               initialCenter: initialCenter,
               initialZoom: 13.0,
-              onTap: (_, __) {
+              onTap: (tapPos, _) {
                 setState(() {
                   _selectedProperty = null;
                 });

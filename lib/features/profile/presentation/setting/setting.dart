@@ -17,7 +17,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:pfe/core/models/user_model.dart' as app_user;
 
 class Setting extends StatefulWidget {
-  const Setting({super.key});
+  final bool isHostMode;
+  const Setting({super.key, this.isHostMode = false});
 
   @override
   State<Setting> createState() => _SettingsPageState();
@@ -143,7 +144,7 @@ class _SettingsPageState extends State<Setting> {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const Profile())),
+            onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => Profile(isHostMode: widget.isHostMode))),
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(16),

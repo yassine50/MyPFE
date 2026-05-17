@@ -65,11 +65,13 @@ class _MyListingState extends State<MyListing> {
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20),
-          color: c.textSecondary,
-          onPressed: () {},
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_ios, size: 20),
+                color: c.textSecondary,
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: Text(
           AppStrings.myListings,
           style: TextStyle(
@@ -79,13 +81,6 @@ class _MyListingState extends State<MyListing> {
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, size: 24),
-            color: c.textMain,
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -495,20 +490,14 @@ class _MyListingState extends State<MyListing> {
                 Expanded(
                   child: TextButton.icon(
                     onPressed: () {
-                      if (isActive) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Stats coming soon!')),
-                        );
-                      } else {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => DetailScreen(property: property),
-                          ),
-                        );
-                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ManageListingScreen(property: property),
+                        ),
+                      );
                     },
-                    icon: Icon(isActive ? Icons.bar_chart : Icons.visibility, size: 20, color: const Color(0xFF9CA3AF)),
+                    icon: Icon(Icons.bar_chart, size: 20, color: const Color(0xFF9CA3AF)),
                     label: Text(
                       isActive ? AppStrings.stats : AppStrings.preview,
                       style: TextStyle(

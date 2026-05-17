@@ -124,7 +124,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         border: Border.all(color: c.border),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.03),
+                            color: Colors.black.withValues(alpha: 0.03),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -147,7 +147,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           ),
                           ValueListenableBuilder<String>(
                             valueListenable: CurrencyFormatter.symbolNotifier,
-                            builder: (context, _, __) {
+                            builder: (context, _, s) {
                               return Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -190,7 +190,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: c.primary.withOpacity(0.05),
+                        color: c.primary.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: c.primary),
                       ),
@@ -301,7 +301,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 border: Border(top: BorderSide(color: c.border)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, -4),
                   ),

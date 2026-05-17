@@ -15,6 +15,7 @@ import 'package:pfe/features/home/presentation/bloc/home_bloc.dart';
 import 'package:pfe/features/home/presentation/bloc/home_event.dart';
 import 'package:pfe/features/home/presentation/bloc/home_state.dart';
 import 'package:pfe/features/home/presentation/map/map_screen.dart';
+import 'package:pfe/features/search/presentation/search_screen/search_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -251,11 +252,17 @@ class _HomeScreenViewState extends State<HomeScreenView> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        Text(
-          AppStrings.seeAll,
-          style: GoogleFonts.firaSans(
-            fontSize: 13,
-            color: const Color(0xFF1E6AF0),
+        GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SearchScreen()),
+          ),
+          child: Text(
+            AppStrings.seeAll,
+            style: GoogleFonts.firaSans(
+              fontSize: 13,
+              color: const Color(0xFF1E6AF0),
+            ),
           ),
         ),
       ],

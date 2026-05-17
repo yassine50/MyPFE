@@ -15,7 +15,8 @@ import 'package:pfe/core/models/user_model.dart' as app_user;
 class Profile extends StatelessWidget {
   /// If provided, shows this user's public profile. Otherwise shows the logged-in user's own profile.
   final String? viewedUserId;
-  const Profile({super.key, this.viewedUserId});
+  final bool isHostMode;
+  const Profile({super.key, this.viewedUserId, this.isHostMode = false});
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +78,7 @@ class Profile extends StatelessWidget {
                     return Center(
                         child: CircularProgressIndicator(color: c.primary));
                   }
-                  return _ProfileContent(user: user, uid: displayUid, isOwnProfile: isOwnProfile, currentUserId: currentUid);
+                  return _ProfileContent(user: user, uid: displayUid, isOwnProfile: isOwnProfile, currentUserId: currentUid, isHostMode: isHostMode);
                 },
               ),
       ),
@@ -91,7 +92,8 @@ class _ProfileContent extends StatelessWidget {
   final String uid;
   final bool isOwnProfile;
   final String? currentUserId;
-  const _ProfileContent({required this.user, required this.uid, this.isOwnProfile = true, this.currentUserId});
+  final bool isHostMode;
+  const _ProfileContent({required this.user, required this.uid, this.isOwnProfile = true, this.currentUserId, this.isHostMode = false});
 
   // ─── Language code → display name ─────────────────────────────────────────
   static const _langMap = {
@@ -453,7 +455,7 @@ class _ProfileContent extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
         children: [
-          // Switch to Host Mode
+          // Switch Mode Button
           Container(
             width: double.infinity, height: 48,
             decoration: BoxDecoration(
@@ -464,17 +466,25 @@ class _ProfileContent extends StatelessWidget {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute<void>(builder: (_) => const GoogleNavBar(renter: false))),
+                onTap: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute<void>(builder: (_) => GoogleNavBar(renter: isHostMode)), // if in host mode, switch to renter mode
+                    (route) => false,
+                  );
+                },
                 borderRadius: BorderRadius.circular(12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.home_work, color: c.textMain, size: 20),
+                    Icon(isHostMode ? Icons.person : Icons.home_work, color: c.textMain, size: 20),
                     const SizedBox(width: 8),
-                    Text(AppStrings.switchToHostMode,
-                        style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16, fontWeight: FontWeight.bold, color: c.textMain)),
+                    Text(
+                      isHostMode ? 'Switch to Co-Liver Mode' : AppStrings.switchToHostMode,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16, fontWeight: FontWeight.bold, color: c.textMain,
+                      ),
+                    ),
                   ],
                 ),
               ),

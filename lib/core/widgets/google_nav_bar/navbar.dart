@@ -25,8 +25,8 @@ class _GoogleNavBarState extends State<GoogleNavBar> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = widget.renter
-        ? [HomeScreen(), Saved(), MyBookingRenter(), InboxWidget(isRenter: true), Setting()]
-        : [Dashbord(), MyListing(), MyBooking(), InboxWidget(isRenter: false), Setting()];
+        ? [HomeScreen(), Saved(), MyBookingRenter(), InboxWidget(isRenter: true), Setting(isHostMode: false)]
+        : [Dashbord(), MyListing(), MyBooking(), InboxWidget(isRenter: false), Setting(isHostMode: true)];
     return Scaffold(
       backgroundColor: Colors.white,
 

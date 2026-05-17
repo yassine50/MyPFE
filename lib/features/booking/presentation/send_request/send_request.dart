@@ -41,6 +41,10 @@ class _RequestToRentPageState extends State<SendRequest> {
       initialDate: _moveInDate,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      selectableDayPredicate: (DateTime date) {
+        final dateStr = DateFormat('yyyy-MM-dd').format(date);
+        return !widget.property.blockedDates.contains(dateStr);
+      },
     );
 
     if (picked != null && picked != _moveInDate) {
@@ -61,6 +65,10 @@ class _RequestToRentPageState extends State<SendRequest> {
       initialDate: _moveOutDate,
       firstDate: _moveInDate.add(const Duration(days: 1)),
       lastDate: DateTime.now().add(const Duration(days: 730)),
+      selectableDayPredicate: (DateTime date) {
+        final dateStr = DateFormat('yyyy-MM-dd').format(date);
+        return !widget.property.blockedDates.contains(dateStr);
+      },
     );
 
     if (picked != null && picked != _moveOutDate) {

@@ -21,7 +21,7 @@ class _MyBookingsPageState extends State<MyBooking> {
 
   final List<String> _tabs = [AppStrings.requests, AppStrings.upcoming, AppStrings.history];
   final _database = FirebaseDatabase.instance;
-  Map<String, PropertyModel> _properties = {};
+  final Map<String, PropertyModel> _properties = {};
   bool _isLoadingProperties = true;
 
   @override
@@ -241,7 +241,7 @@ class _MyBookingsPageState extends State<MyBooking> {
                       return ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: filteredBookings.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 16),
+                        separatorBuilder: (_, i) => const SizedBox(height: 16),
                         itemBuilder: (context, index) {
                           final booking = filteredBookings[index];
                           final propertyId = booking['propertyId']?.toString() ?? '';

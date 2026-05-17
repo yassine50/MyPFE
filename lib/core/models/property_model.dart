@@ -34,6 +34,7 @@ class PropertyModel {
   final List<Map<String, dynamic>> reviews;
   final List<String> residentAvatars;
   final List<String> houseRules;
+  final List<String> blockedDates;
 
   PropertyModel({
     required this.id,
@@ -57,6 +58,7 @@ class PropertyModel {
     this.reviews = const [],
     this.residentAvatars = const [],
     this.houseRules = const [],
+    this.blockedDates = const [],
   });
 
   factory PropertyModel.fromJson(Map<dynamic, dynamic> json, String id) {
@@ -101,6 +103,7 @@ class PropertyModel {
       reviews: parseReviews(json['reviews']),
       residentAvatars: parseStringList(json['residentAvatars'], []),
       houseRules: parseStringList(json['houseRules'], []),
+      blockedDates: parseStringList(json['blockedDates'], []),
     );
   }
 
@@ -126,6 +129,7 @@ class PropertyModel {
       'reviews': reviews,
       'residentAvatars': residentAvatars,
       'houseRules': houseRules,
+      'blockedDates': blockedDates,
     };
   }
 }

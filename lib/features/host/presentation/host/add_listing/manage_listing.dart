@@ -5,6 +5,9 @@ import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/core/models/property_model.dart';
 import 'package:pfe/core/utils/currency_formatter.dart';
 import 'package:pfe/features/property_details/presentation/detail_screen/detail_screen.dart';
+import 'package:pfe/features/host/presentation/host/add_listing/manage_availability_screen.dart';
+import 'package:pfe/features/host/presentation/host/add_listing/manage_photos_screen.dart';
+import 'package:pfe/features/host/presentation/host/add_listing/edit_listing_details_screen.dart';
 import 'package:pfe/features/home/presentation/map/map_screen.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -176,8 +179,9 @@ class _ManageListingScreenState extends State<ManageListingScreen> {
                                 iconColor: const Color(0xFF136DEC),
                                 c: c,
                                 onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Edit details coming soon!')),
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => EditListingDetailsScreen(property: widget.property)),
                                   );
                                 },
                               ),
@@ -189,8 +193,9 @@ class _ManageListingScreenState extends State<ManageListingScreen> {
                                 iconColor: const Color(0xFF7C3AED),
                                 c: c,
                                 onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Availability management coming soon!')),
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => ManageAvailabilityScreen(property: widget.property)),
                                   );
                                 },
                               ),
@@ -202,8 +207,9 @@ class _ManageListingScreenState extends State<ManageListingScreen> {
                                 iconColor: const Color(0xFFEA580C),
                                 c: c,
                                 onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Photo management coming soon!')),
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => ManagePhotosScreen(property: widget.property)),
                                   );
                                 },
                               ),
@@ -367,7 +373,7 @@ class _ListingPreviewCard extends StatelessWidget {
                         ? Image.network(
                             coverUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
+                            errorBuilder: (_, e, s) => Container(
                               color: c.inputBorder,
                               child: Icon(Icons.image_outlined,
                                   color: c.textSecondary, size: 48),
@@ -376,7 +382,7 @@ class _ListingPreviewCard extends StatelessWidget {
                         : Image.file(
                             File(coverUrl),
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
+                            errorBuilder: (_, e, s) => Container(
                               color: c.inputBorder,
                               child: Icon(Icons.image_outlined,
                                   color: c.textSecondary, size: 48),
