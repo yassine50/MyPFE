@@ -21,7 +21,7 @@ class MyBookingRenter extends StatefulWidget {
 class _MyBookingsPageState extends State<MyBookingRenter> {
   int _selectedSegmentIndex = 0;
   final _database = FirebaseDatabase.instance;
-  Map<String, PropertyModel> _properties = {};
+  final Map<String, PropertyModel> _properties = {};
   bool _isLoadingProperties = true;
 
   @override

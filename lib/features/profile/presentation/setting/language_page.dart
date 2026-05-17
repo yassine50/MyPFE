@@ -142,7 +142,7 @@ class _LanguagePageState extends State<LanguagePage> {
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: _languages.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, i) => const SizedBox(height: 8),
                   itemBuilder: (context, i) {
                     final lang = _languages[i];
                     final isSelected = _selected == lang['code'];

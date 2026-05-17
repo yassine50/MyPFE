@@ -262,9 +262,9 @@ class _AddListingStep7ReviewScreenState extends State<AddListingStep7ReviewScree
         onBack: () => Navigator.pop(context),
         isLoading: _isLoading,
         onPublish: () async {
-          setState(() {
-            _isLoading = true;
-          });
+          final scaffoldMsg = ScaffoldMessenger.of(context);
+          final nav = Navigator.of(context);
+          setState(() => _isLoading = true);
 
           try {
             // Map the controller data to PropertyModel
@@ -295,16 +295,13 @@ class _AddListingStep7ReviewScreenState extends State<AddListingStep7ReviewScree
             await repo.addProperty(newProperty);
 
             if (!mounted) return;
-            setState(() {
-              _isLoading = false;
-            });
-            _showSuccessAndNavigate(context, c, newProperty);
+            setState(() => _isLoading = false);
+            _showSuccess(nav, c, newProperty);
           } catch (e) {
             if (!mounted) return;
-            setState(() {
-              _isLoading = false;
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
+            setState(() => _isLoading = false);
+            if (!mounted) return;
+            scaffoldMsg.showSnackBar(
               SnackBar(content: Text('Error publishing listing: $e')),
             );
           }
@@ -313,70 +310,71 @@ class _AddListingStep7ReviewScreenState extends State<AddListingStep7ReviewScree
     );
   }
 
-  void _showSuccessAndNavigate(BuildContext context, AppColorScheme c, PropertyModel property) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: c.card,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.check_circle_rounded,
-                  color: Colors.green, size: 44),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Listing Published!',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: c.textMain,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your property is now live and visible to potential guests.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: c.textSecondary, height: 1.4),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // close dialog
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ManageListingScreen(property: property),
-                    ),
-                    (route) => route.isFirst,
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: c.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+  void _showSuccess(NavigatorState nav, AppColorScheme c, PropertyModel property) {
+    nav.push(
+      DialogRoute(
+        context: nav.context,
+        barrierDismissible: false,
+        builder: (_) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: c.card,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
                 ),
-                child: const Text(
-                  'Manage Listing',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                child: const Icon(Icons.check_circle_rounded,
+                    color: Colors.green, size: 44),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Listing Published!',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: c.textMain,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                'Your property is now live and visible to potential guests.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: c.textSecondary, height: 1.4),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    nav.pop(); // close dialog
+                    nav.pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (_) => ManageListingScreen(property: property),
+                      ),
+                      (route) => route.isFirst,
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: c.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    'Manage Listing',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -427,7 +425,7 @@ class _ListingPreviewCard extends StatelessWidget {
                           ? Image.network(
                               coverUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
+                              errorBuilder: (_, e, s) => Container(
                                 color: c.inputBorder,
                                 child: Icon(Icons.image_outlined,
                                     color: c.textSecondary, size: 48),
@@ -436,7 +434,7 @@ class _ListingPreviewCard extends StatelessWidget {
                           : Image.file(
                               File(coverUrl),
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
+                              errorBuilder: (_, e, s) => Container(
                                 color: c.inputBorder,
                                 child: Icon(Icons.image_outlined,
                                     color: c.textSecondary, size: 48),
@@ -715,7 +713,7 @@ class _MapMiniPreview extends StatelessWidget {
             fit: BoxFit.cover,
             color: Colors.black.withValues(alpha: 0.15),
             colorBlendMode: BlendMode.darken,
-            errorBuilder: (_, __, ___) => Container(
+            errorBuilder: (_, e, s) => Container(
               height: 120,
               color: c.inputBorder,
               child: Icon(Icons.map_outlined, color: c.textSecondary, size: 36),

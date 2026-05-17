@@ -346,7 +346,7 @@ class _EditProfilePageState extends State<EditProfil> {
                         ? Image.file(_pickedImageFile!, fit: BoxFit.cover)
                         : _currentPhotoUrl.isNotEmpty
                             ? Image.network(_currentPhotoUrl, fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
+                                errorBuilder: (_, e, s) =>
                                     Icon(Icons.person, size: 56, color: c.textSecondary))
                             : Icon(Icons.person, size: 56, color: c.textSecondary),
                   ),

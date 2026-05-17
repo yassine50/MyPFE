@@ -71,9 +71,9 @@ We reserve the right to suspend accounts that violate these terms.''', c),
 • Honor accepted bookings and communicate promptly
 • Comply with all applicable local housing laws and regulations''', c),
 
-                    _section('5. Payments & Fees', '''All payments are processed securely through our payment provider. Rently charges a service fee on each booking. Refunds are subject to the individual listing\'s cancellation policy.
+                    _section('5. Payments & Fees', '''All payments are processed securely through our payment provider. Rently charges a service fee on each booking. Refunds are subject to the individual listing's cancellation policy.
 
-Hosts receive payouts 24 hours after the tenant\'s check-in date, minus the platform commission.''', c),
+Hosts receive payouts 24 hours after the tenant's check-in date, minus the platform commission.''', c),
 
                     _section('6. Cancellations & Refunds', '''Cancellation policies are set by individual hosts and are clearly displayed on each listing. In cases of extenuating circumstances (natural disasters, government restrictions), we may issue exceptions at our discretion.''', c),
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pfe/core/localization/app_strings.dart';
 import 'package:pfe/core/theme/app_theme.dart';
 import 'package:pfe/core/models/property_model.dart';
-import 'package:pfe/features/property_details/presentation/detail_screen/detail_screen.dart';
 import 'package:pfe/features/host/presentation/host/add_listing/manage_listing.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';

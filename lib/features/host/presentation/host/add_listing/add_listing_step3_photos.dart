@@ -346,7 +346,7 @@ class _PhotoCardState extends State<_PhotoCard> {
                 ? Image.network(
                     widget.url,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, e, s) => Container(
                       color: widget.c.inputBorder,
                       child: Icon(Icons.image_outlined,
                           color: widget.c.textSecondary, size: 32),
@@ -355,7 +355,7 @@ class _PhotoCardState extends State<_PhotoCard> {
                 : Image.file(
                     File(widget.url),
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, e, s) => Container(
                       color: widget.c.inputBorder,
                       child: Icon(Icons.broken_image_outlined,
                           color: widget.c.textSecondary, size: 32),

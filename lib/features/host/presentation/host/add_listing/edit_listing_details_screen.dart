@@ -58,7 +58,7 @@ class _EditListingDetailsScreenState extends State<EditListingDetailsScreen> {
         'title': title,
         'subtitle': _subtitleCtrl.text.trim(),
         'description': _descCtrl.text.trim(),
-        'price': '€${price}/month',
+        'price': '€$price/month',
         'residentDemographics': _demographicsCtrl.text.trim(),
       });
       if (mounted) {

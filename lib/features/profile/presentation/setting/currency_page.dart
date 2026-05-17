@@ -132,7 +132,7 @@ class _CurrencyPageState extends State<CurrencyPage> {
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: _currencies.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, i) => const SizedBox(height: 8),
                   itemBuilder: (context, i) {
                     final cur = _currencies[i];
                     final isSelected = _selected == cur['code'];

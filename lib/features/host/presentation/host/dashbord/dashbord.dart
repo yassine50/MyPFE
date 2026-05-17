@@ -619,7 +619,7 @@ class _NotificationsSheet extends StatelessWidget {
                     final pid = b['propertyId']?.toString() ?? '';
                     final propTitle = hostProperties[pid]?.title ?? 'Property';
                     final status = b['status']?.toString() ?? 'pending';
-                    final title = status == 'pending' ? 'New booking request' : 'Booking ${status}';
+                    final title = status == 'pending' ? 'New booking request' : 'Booking $status';
                     final ts = (b['createdAt'] as num?)?.toInt() ?? 0;
                     final timeStr = ts > 0
                         ? DateFormat('dd MMM, HH:mm').format(DateTime.fromMillisecondsSinceEpoch(ts))

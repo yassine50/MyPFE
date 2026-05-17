@@ -117,7 +117,7 @@ class BillingHistoryPage extends StatelessWidget {
                           child: ListView.separated(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             itemCount: transactions.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 8),
+                            separatorBuilder: (_, i) => const SizedBox(height: 8),
                             itemBuilder: (context, i) => _TransactionTile(transaction: transactions[i], c: c),
                           ),
                         ),
